@@ -189,7 +189,7 @@ const NotificationsTable = () => {
           onClick={handleAddNotification}
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
         >
-          Add Notification
+          Add Notifications
         </button>
       </div>
 
@@ -234,10 +234,11 @@ const NotificationsTable = () => {
                     e.stopPropagation();
                     handleDeleteClick(notification.id);
                   }}
-                  className="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded hover:bg-red-600 transition"
+                  className="px-2 py-1 text-xs  font-semibold bg-red-500 text-white rounded hover:bg-red-600 transition mr-1"
                 >
                   Delete
                 </button>
+                
               </td>
             </tr>
           ))}
@@ -248,7 +249,7 @@ const NotificationsTable = () => {
       {showAddModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-opacity-20 backdrop-blur-lg z-50">
           <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Add New Notification</h3>
+            <h3 className="text-lg font-semibold mb-4">Add New Notifications</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -320,7 +321,7 @@ const NotificationsTable = () => {
                 onClick={confirmAddNotification}
                 className="px-4 py-2 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 transition"
               >
-                Add Notification
+                Add Notifications
               </button>
             </div>
           </div>
