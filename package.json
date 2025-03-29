@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "axios": "^1.8.4",
+    "express-validator": "^7.2.1",
+    "react-datepicker": "^8.2.1",
+    "react-toastify": "^11.0.5"
+  },
+  "devDependencies": {
+    "prisma": "^6.5.0"
+  }
+}

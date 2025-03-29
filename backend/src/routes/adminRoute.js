@@ -64,6 +64,14 @@ const router = express.Router();
 
 // router.use(authMiddleware);
 // router.use(verifyToken);
+// Debug middleware to log all notice-related requests
+// Debug middleware to log all notice-related requests
+router.use('/notices*', (req, res, next) => {
+  console.log(`[NOTICE REQUEST] ${req.method} ${req.originalUrl}`);
+  console.log('[HEADERS]', req.headers);
+  console.log('[BODY]', req.body);
+  next();
+});
 
 //Route For User Authentication and User Management
 router.post(
@@ -120,8 +128,7 @@ router.get(
   verifyToken(["user"]),
   getStudentAndAllNotifications
 );
-
-//Routes for Notice Management
+// Routes for Notice Management
 router.post("/addnotice", verifyToken(["admin"]), addNotice);
 router.post("/updatenotice", verifyToken(["admin"]), updateNotice);
 router.post("/deletenotice", verifyToken(["admin"]), deleteNotice);
