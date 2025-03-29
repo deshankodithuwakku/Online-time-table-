@@ -52,6 +52,13 @@ import {
   processRequest,
 } from "../controllers/Admin/Request/teacherRequstController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import {
+  addNotice,
+  updateNotice,
+  deleteNotice,
+  getAllNotices,
+  getSingleNotice,
+} from "../controllers/Admin/Notices/noticeController.js";
 
 const router = express.Router();
 
@@ -113,6 +120,13 @@ router.get(
   verifyToken(["user"]),
   getStudentAndAllNotifications
 );
+
+//Routes for Notice Management
+router.post("/addnotice", verifyToken(["admin"]), addNotice);
+router.post("/updatenotice", verifyToken(["admin"]), updateNotice);
+router.post("/deletenotice", verifyToken(["admin"]), deleteNotice);
+router.get("/getallnotices", verifyToken(["admin"]), getAllNotices);
+router.post("/getnotice", verifyToken(["admin"]), getSingleNotice);
 
 //Route For Course Authentication and Course Management
 router.post("/addcourse", verifyToken(["admin"]), addCourse);
