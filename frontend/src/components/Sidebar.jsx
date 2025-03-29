@@ -170,6 +170,15 @@ const Sidebar = () => {
             </Link>
           </li>
           <li className="hover:bg-indigo-600 transition-all duration-300 ease-in-out rounded-md mx-2">
+            <Link
+              to="/noticetable"
+              className="flex items-center p-3 hover:text-white"
+            >
+              <LuNewspaper className="mr-3 text-xl" />
+              <span className="text-lg">Notice</span>
+            </Link>
+          </li>
+          <li className="hover:bg-indigo-600 transition-all duration-300 ease-in-out rounded-md mx-2">
             <button
               onClick={handleLogout}
               className="flex items-center p-3 w-full text-left hover:text-white"
