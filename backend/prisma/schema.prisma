@@ -135,3 +135,11 @@ enum RequestStatus {
   approved
   rejected
 }
+
+model Notice {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  message       String
+  recipientType RecipientType
+  createdAt     DateTime      @default(now())
+}

@@ -24,11 +24,86 @@ const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState(null);
 
+  // const validateForm = () => {
+  //   const newErrors = {};
+  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  //   const phoneRegex =
+  //     /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,3}[-\s.]?[0-9]{3,6}$/;
+  //   const passwordRegex =
+  //     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  //   // First Name validation
+  //   if (!formData.firstName.trim()) {
+  //     newErrors.firstName = "First name is required";
+  //   } else if (formData.firstName.length < 2) {
+  //     newErrors.firstName = "First name must be at least 2 characters";
+  //   } else if (formData.firstName.length > 50) {
+  //     newErrors.firstName = "First name must be less than 50 characters";
+  //   }
+
+  //   // Last Name validation
+  //   if (!formData.lastName.trim()) {
+  //     newErrors.lastName = "Last name is required";
+  //   } else if (formData.lastName.length < 2) {
+  //     newErrors.lastName = "Last name must be at least 2 characters";
+  //   } else if (formData.lastName.length > 50) {
+  //     newErrors.lastName = "Last name must be less than 50 characters";
+  //   }
+
+  //   // Email validation
+  //   if (!formData.email.trim()) {
+  //     newErrors.email = "Email is required";
+  //   } else if (!emailRegex.test(formData.email)) {
+  //     newErrors.email = "Please enter a valid email address";
+  //   }
+
+  //   // Password validation
+  //   if (!formData.password) {
+  //     newErrors.password = "Password is required";
+  //   } else if (!passwordRegex.test(formData.password)) {
+  //     newErrors.password =
+  //       "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character";
+  //   }
+
+  //   // Confirm Password validation
+  //   if (!formData.confirmPassword) {
+  //     newErrors.confirmPassword = "Please confirm your password";
+  //   } else if (formData.password !== formData.confirmPassword) {
+  //     newErrors.confirmPassword = "Passwords do not match";
+  //   }
+
+  //   // Gender validation
+  //   if (!formData.gender) {
+  //     newErrors.gender = "Gender is required";
+  //   }
+
+  //   // Contact Number validation
+  //   if (!formData.contactNumber.trim()) {
+  //     newErrors.contactNumber = "Contact number is required";
+  //   } else if (!phoneRegex.test(formData.contactNumber)) {
+  //     newErrors.contactNumber = "Please enter a valid phone number";
+  //   }
+
+  //   // Avatar validation
+  //   if (!formData.avatar) {
+  //     newErrors.avatar = "Profile picture is required";
+  //   } else if (formData.avatar.size > 2 * 1024 * 1024) {
+  //     // 2MB limit
+  //     newErrors.avatar = "Image size must be less than 2MB";
+  //   } else if (!formData.avatar.type.match("image.*")) {
+  //     newErrors.avatar = "Only image files are allowed";
+  //   }
+
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
   const validateForm = () => {
     const newErrors = {};
+
+    // Regular expressions
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex =
-      /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,3}[-\s.]?[0-9]{3,6}$/;
+
+    const phoneRegex = /^(?:\+94|0|94)?(?:7[01245678])(?:\d{7})$/;
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -77,11 +152,32 @@ const RegisterForm = () => {
       newErrors.gender = "Gender is required";
     }
 
-    // Contact Number validation
+    // Contact Number validation - Sri Lankan specific
     if (!formData.contactNumber.trim()) {
       newErrors.contactNumber = "Contact number is required";
-    } else if (!phoneRegex.test(formData.contactNumber)) {
-      newErrors.contactNumber = "Please enter a valid phone number";
+    } else {
+      // Remove all non-digit characters
+      const cleanedNumber = formData.contactNumber.replace(/\D/g, "");
+
+      // Validate Sri Lankan mobile number formats
+      if (!phoneRegex.test(cleanedNumber)) {
+        newErrors.contactNumber =
+          "Please enter a valid mobile number (07XXXXXXXX)";
+      } else {
+        // Additional length checks
+        if (cleanedNumber.startsWith("94") && cleanedNumber.length !== 11) {
+          newErrors.contactNumber =
+            "International format must be 11 digits (947XXXXXXXX)";
+        } else if (
+          cleanedNumber.startsWith("0") &&
+          cleanedNumber.length !== 10
+        ) {
+          newErrors.contactNumber =
+            "Local numbers must be 10 digits (07XXXXXXXX)";
+        } else if (!/^(94|0|)\d+$/.test(cleanedNumber)) {
+          newErrors.contactNumber = "Number must start with 0 or 94";
+        }
+      }
     }
 
     // Avatar validation
@@ -97,7 +193,6 @@ const RegisterForm = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
 
@@ -370,7 +465,7 @@ const RegisterForm = () => {
                     name="contactNumber"
                     value={formData.contactNumber}
                     onChange={handleChange}
-                    placeholder="+1 234 567 890"
+                    placeholder="07XXXXXXXX"
                     className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
                       errors.contactNumber
                         ? "border-red-500"

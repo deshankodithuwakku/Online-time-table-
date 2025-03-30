@@ -17,9 +17,10 @@ const RegisterForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
+
+    // Regular expressions
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex =
-      /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,3}[-\s.]?[0-9]{3,6}$/;
+    const phoneRegex = /^(0|94|\+94)?(7[0-9])([0-9]{7})$/;
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -64,11 +65,32 @@ const RegisterForm = () => {
       newErrors.gender = "Gender is required";
     }
 
-    // Contact Number validation
+    // Contact Number validation - Sri Lankan specific
     if (!formData.contactNumber.trim()) {
       newErrors.contactNumber = "Contact number is required";
-    } else if (!phoneRegex.test(formData.contactNumber)) {
-      newErrors.contactNumber = "Please enter a valid phone number";
+    } else {
+      // Remove all non-digit characters
+      let cleanedNumber = formData.contactNumber.replace(/\D/g, "");
+
+      // Convert international format to local format
+      if (cleanedNumber.startsWith("94") && cleanedNumber.length === 11) {
+        cleanedNumber = "0" + cleanedNumber.substring(2);
+      } else if (
+        cleanedNumber.startsWith("+94") &&
+        cleanedNumber.length === 12
+      ) {
+        cleanedNumber = "0" + cleanedNumber.substring(3);
+      }
+
+      // Validate the number
+      if (!phoneRegex.test(cleanedNumber)) {
+        newErrors.contactNumber =
+          "Please enter a valid Sri Lankan mobile number (07XXXXXXXX)";
+      } else if (cleanedNumber.length !== 10) {
+        newErrors.contactNumber = "Phone number must be 10 digits (07XXXXXXXX)";
+      } else if (!cleanedNumber.startsWith("07")) {
+        newErrors.contactNumber = "Must start with 07 for mobile numbers";
+      }
     }
 
     // Avatar validation

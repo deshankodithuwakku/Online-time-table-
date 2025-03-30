@@ -217,7 +217,7 @@ const ScheduleDetailsPage = () => {
             onClick={() => setShowFormModal(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-300"
           >
-            Update Schedule
+            Reassign Teacher
           </button>
         </div>
       </div>
@@ -270,7 +270,7 @@ const ScheduleDetailsPage = () => {
                   type="submit"
                   className="px-4 py-2 text-sm text-white bg-green-500 rounded hover:bg-green-600 transition"
                 >
-                  Update Schedule
+                  Reassign Teacher
                 </button>
               </div>
             </form>

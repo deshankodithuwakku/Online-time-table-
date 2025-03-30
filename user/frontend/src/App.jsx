@@ -17,6 +17,7 @@ import PasswordrestPage from "./pages/PasswordrestPage";
 import TeacherRequestForm from "./pages/TeacherRequestForm";
 import RequestHistory from "./pages/RequestHistory";
 import Studentnotification from "./pages/Studentnotification";
+import Scheduletable from "./pages/Scheduletable";
 import ProtectedRoute from "./utils/ProtectedRoute";
 
 function App() {
@@ -77,6 +78,14 @@ const MainContent = () => {
             element={
               <ProtectedRoute allowedRoles={["teacher"]}>
                 <RequestHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/schedules"
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <Scheduletable />
               </ProtectedRoute>
             }
           />

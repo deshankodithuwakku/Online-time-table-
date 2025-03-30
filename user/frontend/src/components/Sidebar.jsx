@@ -6,6 +6,7 @@ import { IoNotificationsSharp } from "react-icons/io5";
 import { BiMessageRoundedDetail } from "react-icons/bi";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
+import { AiOutlineSchedule } from "react-icons/ai";
 
 const Sidebar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -84,7 +85,16 @@ const Sidebar = () => {
                   className="flex items-center p-3 hover:text-white"
                 >
                   <BiMessageRoundedDetail className="mr-3 text-xl" />
-                  <span className="text-lg">Schedule</span>
+                  <span className="text-lg">Request Schedule</span>
+                </Link>
+              </li>
+              <li className="hover:bg-indigo-600 transition-all duration-300 ease-in-out">
+                <Link
+                  to="/schedules"
+                  className="flex items-center p-3 hover:text-white"
+                >
+                  <AiOutlineSchedule className="mr-3 text-xl" />
+                  <span className="text-lg">Schedules</span>
                 </Link>
               </li>
               <li className="hover:bg-indigo-600 transition-all duration-300 ease-in-out">

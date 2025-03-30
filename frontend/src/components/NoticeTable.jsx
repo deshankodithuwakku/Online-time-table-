@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-const NotificationsTable = () => {
+const NoticeTable = () => {
   // State management
-  const [notifications, setNotifications] = useState([]);
+  const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
@@ -15,8 +15,8 @@ const NotificationsTable = () => {
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedNotificationId, setSelectedNotificationId] = useState(null);
-  const [newNotification, setNewNotification] = useState({
+  const [selectedNoticeId, setSelectedNoticeId] = useState(null);
+  const [newNotice, setNewNotice] = useState({
     title: "",
     message: "",
     recipientType: "all",
@@ -27,23 +27,22 @@ const NotificationsTable = () => {
     recipientType: "",
   });
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [selectedNotice, setSelectedNotice] = useState(null);
 
   const navigate = useNavigate();
 
-  // Fetch notifications with filters
-  const fetchNotifications = async () => {
+  // Fetch notices with filters
+  const fetchNotices = async () => {
     try {
       setLoading(true);
       const query = new URLSearchParams();
       if (filters.title) query.append("title", filters.title);
-      if (filters.recipientType)
-        query.append("recipientType", filters.recipientType);
+      if (filters.recipientType) query.append("recipientType", filters.recipientType);
       if (filters.startDate) query.append("startDate", filters.startDate);
       if (filters.endDate) query.append("endDate", filters.endDate);
 
       const response = await fetch(
-        `http://localhost:8080/api/admin/getallNotification?${query.toString()}`,
+        `http://localhost:8080/api/notice/getNotices?${query.toString()}`,
         {
           credentials: "include",
         }
@@ -54,9 +53,9 @@ const NotificationsTable = () => {
         return;
       }
       if (response.ok) {
-        setNotifications(data);
+        setNotices(data);
       } else {
-        throw new Error(data.message || "Failed to fetch notifications");
+        throw new Error(data.message || "Failed to fetch notices");
       }
     } catch (error) {
       setError(error.message);
@@ -77,14 +76,13 @@ const NotificationsTable = () => {
     try {
       const query = new URLSearchParams();
       if (filters.title) query.append("title", filters.title);
-      if (filters.recipientType)
-        query.append("recipientType", filters.recipientType);
+      if (filters.recipientType) query.append("recipientType", filters.recipientType);
       if (filters.startDate) query.append("startDate", filters.startDate);
       if (filters.endDate) query.append("endDate", filters.endDate);
       query.append("download", "pdf");
 
       const response = await fetch(
-        `http://localhost:8080/api/admin/getallNotification?${query.toString()}`,
+        `http://localhost:8080/api/notice/getNotices?${query.toString()}`,
         { credentials: "include" }
       );
 
@@ -99,7 +97,7 @@ const NotificationsTable = () => {
       // Create temporary link to trigger download
       const a = document.createElement("a");
       a.href = url;
-      a.download = "notifications.pdf";
+      a.download = "notices.pdf";
       document.body.appendChild(a);
       a.click();
 
@@ -113,19 +111,19 @@ const NotificationsTable = () => {
     }
   };
 
-  // Notification CRUD operations
+  // Notice CRUD operations
   const handleDeleteClick = (id) => {
-    setSelectedNotificationId(id);
+    setSelectedNoticeId(id);
     setShowDeleteModal(true);
   };
 
-  const handleAddNotification = () => {
+  const handleAddNotice = () => {
     setShowAddModal(true);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewNotification((prev) => ({
+    setNewNotice((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -139,23 +137,23 @@ const NotificationsTable = () => {
       recipientType: "",
     };
 
-    if (!newNotification.title.trim()) {
+    if (!newNotice.title.trim()) {
       newErrors.title = "Title is required";
       isValid = false;
-    } else if (newNotification.title.length > 100) {
+    } else if (newNotice.title.length > 100) {
       newErrors.title = "Title must be less than 100 characters";
       isValid = false;
     }
 
-    if (!newNotification.message.trim()) {
+    if (!newNotice.message.trim()) {
       newErrors.message = "Message is required";
       isValid = false;
-    } else if (newNotification.message.length > 500) {
+    } else if (newNotice.message.length > 500) {
       newErrors.message = "Message must be less than 500 characters";
       isValid = false;
     }
 
-    if (!newNotification.recipientType) {
+    if (!newNotice.recipientType) {
       newErrors.recipientType = "Recipient type is required";
       isValid = false;
     }
@@ -164,17 +162,17 @@ const NotificationsTable = () => {
     return isValid;
   };
 
-  const confirmAddNotification = async () => {
+  const confirmAddNotice = async () => {
     if (!validateForm()) {
       return;
     }
     try {
       const response = await fetch(
-        "http://localhost:8080/api/admin/addnotification",
+        "http://localhost:8080/api/notice/addNotice",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newNotification),
+          body: JSON.stringify(newNotice),
           credentials: "include",
         }
       );
@@ -185,33 +183,33 @@ const NotificationsTable = () => {
         return;
       }
       if (!response.ok)
-        throw new Error(data.message || "Failed to add notification");
+        throw new Error(data.message || "Failed to add notice");
 
-      toast.success("Notification added successfully");
-      setNewNotification({
+      toast.success("Notice added successfully");
+      setNewNotice({
         title: "",
         message: "",
         recipientType: "all",
       });
       setShowAddModal(false);
-      fetchNotifications();
+      fetchNotices();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     }
   };
 
-  const cancelAddNotification = () => {
+  const cancelAddNotice = () => {
     setShowAddModal(false);
   };
 
   const confirmDelete = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/admin/deleteNotification",
+        "http://localhost:8080/api/notice/deleteNotice",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: selectedNotificationId }),
+          body: JSON.stringify({ id: selectedNoticeId }),
           credentials: "include",
         }
       );
@@ -222,48 +220,48 @@ const NotificationsTable = () => {
         return;
       }
       if (!response.ok)
-        throw new Error(data.message || "Failed to delete notification");
+        throw new Error(data.message || "Failed to delete notice");
 
-      toast.success("Notification deleted successfully");
-      fetchNotifications();
+      toast.success("Notice deleted successfully");
+      fetchNotices();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
       setShowDeleteModal(false);
-      setSelectedNotificationId(null);
+      setSelectedNoticeId(null);
     }
   };
 
   const cancelDelete = () => {
     setShowDeleteModal(false);
-    setSelectedNotificationId(null);
+    setSelectedNoticeId(null);
   };
 
-  const handleUpdateClick = (notification) => {
-    setSelectedNotification(notification);
-    setNewNotification({
-      title: notification.title,
-      message: notification.message,
-      recipientType: notification.recipientType,
+  const handleUpdateClick = (notice) => {
+    setSelectedNotice(notice);
+    setNewNotice({
+      title: notice.title,
+      message: notice.message,
+      recipientType: notice.recipientType,
     });
     setShowUpdateModal(true);
   };
 
-  const confirmUpdateNotification = async () => {
+  const confirmUpdateNotice = async () => {
     if (!validateForm()) {
       return;
     }
     try {
       const response = await fetch(
-        "http://localhost:8080/api/admin/updateNotification",
+        "http://localhost:8080/api/notice/updateNotice",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: selectedNotification.id,
-            title: newNotification.title,
-            message: newNotification.message,
-            recipientType: newNotification.recipientType,
+            id: selectedNotice.id,
+            title: newNotice.title,
+            message: newNotice.message,
+            recipientType: newNotice.recipientType,
           }),
           credentials: "include",
         }
@@ -275,11 +273,11 @@ const NotificationsTable = () => {
         return;
       }
       if (!response.ok)
-        throw new Error(data.message || "Failed to update notification");
+        throw new Error(data.message || "Failed to update notice");
 
-      toast.success("Notification updated successfully");
+      toast.success("Notice updated successfully");
       setShowUpdateModal(false);
-      fetchNotifications();
+      fetchNotices();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     }
@@ -287,7 +285,7 @@ const NotificationsTable = () => {
 
   // Initial fetch
   useEffect(() => {
-    fetchNotifications();
+    fetchNotices();
   }, []);
 
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
@@ -297,7 +295,7 @@ const NotificationsTable = () => {
     <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto h-screen">
       {/* Header and Action Buttons */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold text-gray-800">Notifications</h2>
+        <h2 className="text-2xl font-semibold text-gray-800">Notices</h2>
         <div className="flex space-x-2">
           <button
             onClick={handleDownloadPdf}
@@ -306,10 +304,10 @@ const NotificationsTable = () => {
             Download PDF
           </button>
           <button
-            onClick={handleAddNotification}
+            onClick={handleAddNotice}
             className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
           >
-            Add Notification
+            Add Notice
           </button>
         </div>
       </div>
@@ -371,13 +369,13 @@ const NotificationsTable = () => {
         </div>
       </div>
       <button
-        onClick={fetchNotifications}
+        onClick={fetchNotices}
         className="px-4 py-2 mb-4 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
       >
         Apply Filters
       </button>
 
-      {/* Notifications Table */}
+      {/* Notices Table */}
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-gray-200 text-gray-700 text-sm uppercase tracking-wider">
@@ -389,55 +387,42 @@ const NotificationsTable = () => {
           </tr>
         </thead>
         <tbody>
-          {notifications.map((notification) => (
+          {notices.map((notice) => (
             <tr
-              key={notification.id}
+              key={notice.id}
               className="border-b hover:bg-gray-50 transition"
             >
-              <td
-                className="px-4 py-3 cursor-pointer hover:text-blue-600"
-                onClick={() =>
-                  navigate(`/notificationdetails/${notification.id}`)
-                }
-              >
-                {notification.title}
-              </td>
+              <td className="px-4 py-3">{notice.title}</td>
               <td className="px-4 py-3">
-                {notification.message.length > 50
-                  ? `${notification.message.substring(0, 50)}...`
-                  : notification.message}
+                {notice.message.length > 50
+                  ? `${notice.message.substring(0, 50)}...`
+                  : notice.message}
               </td>
               <td className="px-4 py-3">
                 <span
                   className={`px-2 py-1 text-xs font-semibold rounded ${
-                    notification.recipientType === "all"
+                    notice.recipientType === "all"
                       ? "bg-purple-100 text-purple-800"
-                      : notification.recipientType === "students"
+                      : notice.recipientType === "student"
                       ? "bg-green-100 text-green-800"
                       : "bg-blue-100 text-blue-800"
                   }`}
                 >
-                  {notification.recipientType}
+                  {notice.recipientType}
                 </span>
               </td>
               <td className="px-4 py-3">
-                {new Date(notification.createdAt).toLocaleString()}
+                {new Date(notice.createdAt).toLocaleString()}
               </td>
               <td className="px-4 py-3 space-x-2">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleUpdateClick(notification);
-                  }}
+                  onClick={() => handleUpdateClick(notice)}
                   className="px-2 py-1 text-xs font-semibold bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
                 >
                   Update
                 </button>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteClick(notification.id);
-                  }}
+                  onClick={() => handleDeleteClick(notice.id)}
                   className="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded hover:bg-red-600 transition"
                 >
                   Delete
@@ -448,11 +433,11 @@ const NotificationsTable = () => {
         </tbody>
       </table>
 
-      {/* Add Notification Modal */}
+      {/* Add Notice Modal */}
       {showAddModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-opacity-20 backdrop-blur-lg z-50">
           <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Add New Notification</h3>
+            <h3 className="text-lg font-semibold mb-4">Add New Notice</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -461,7 +446,7 @@ const NotificationsTable = () => {
                 <input
                   type="text"
                   name="title"
-                  value={newNotification.title}
+                  value={newNotice.title}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border rounded ${
                     errors.title ? "border-red-500" : ""
@@ -478,7 +463,7 @@ const NotificationsTable = () => {
                 </label>
                 <textarea
                   name="message"
-                  value={newNotification.message}
+                  value={newNotice.message}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border rounded ${
                     errors.message ? "border-red-500" : ""
@@ -496,7 +481,7 @@ const NotificationsTable = () => {
                 </label>
                 <select
                   name="recipientType"
-                  value={newNotification.recipientType}
+                  value={newNotice.recipientType}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border rounded ${
                     errors.recipientType ? "border-red-500" : ""
@@ -515,16 +500,16 @@ const NotificationsTable = () => {
             </div>
             <div className="flex justify-end mt-6">
               <button
-                onClick={cancelAddNotification}
+                onClick={cancelAddNotice}
                 className="px-4 py-2 mr-2 text-sm text-gray-700 bg-gray-200 rounded hover:bg-gray-300 transition"
               >
                 Cancel
               </button>
               <button
-                onClick={confirmAddNotification}
+                onClick={confirmAddNotice}
                 className="px-4 py-2 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 transition"
               >
-                Add Notification
+                Add Notice
               </button>
             </div>
           </div>
@@ -535,9 +520,9 @@ const NotificationsTable = () => {
       {showDeleteModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-opacity-20 backdrop-blur-lg z-50">
           <div className="bg-white rounded-lg p-6 shadow-lg max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-4">Delete Notification</h3>
+            <h3 className="text-lg font-semibold mb-4">Delete Notice</h3>
             <p className="mb-6">
-              Are you sure you want to delete this notification?
+              Are you sure you want to delete this notice?
             </p>
             <div className="flex justify-end">
               <button
@@ -557,11 +542,11 @@ const NotificationsTable = () => {
         </div>
       )}
 
-      {/* Update Notification Modal */}
+      {/* Update Notice Modal */}
       {showUpdateModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-opacity-20 backdrop-blur-lg z-50">
           <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Update Notification</h3>
+            <h3 className="text-lg font-semibold mb-4">Update Notice</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -570,7 +555,7 @@ const NotificationsTable = () => {
                 <input
                   type="text"
                   name="title"
-                  value={newNotification.title}
+                  value={newNotice.title}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border rounded ${
                     errors.title ? "border-red-500" : ""
@@ -587,7 +572,7 @@ const NotificationsTable = () => {
                 </label>
                 <textarea
                   name="message"
-                  value={newNotification.message}
+                  value={newNotice.message}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border rounded ${
                     errors.message ? "border-red-500" : ""
@@ -605,7 +590,7 @@ const NotificationsTable = () => {
                 </label>
                 <select
                   name="recipientType"
-                  value={newNotification.recipientType}
+                  value={newNotice.recipientType}
                   onChange={handleInputChange}
                   className={`w-full px-3 py-2 border rounded ${
                     errors.recipientType ? "border-red-500" : ""
@@ -630,10 +615,10 @@ const NotificationsTable = () => {
                 Cancel
               </button>
               <button
-                onClick={confirmUpdateNotification}
+                onClick={confirmUpdateNotice}
                 className="px-4 py-2 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 transition"
               >
-                Update Notification
+                Update Notice
               </button>
             </div>
           </div>
@@ -643,4 +628,4 @@ const NotificationsTable = () => {
   );
 };
 
-export default NotificationsTable;
+export default NoticeTable;
