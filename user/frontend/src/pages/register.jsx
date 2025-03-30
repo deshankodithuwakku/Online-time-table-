@@ -6,6 +6,7 @@ import {
   FaPhone,
   FaUserCircle,
   FaUpload,
+  FaSignInAlt,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -24,190 +25,167 @@ const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [preview, setPreview] = useState(null);
 
-  // const validateForm = () => {
-  //   const newErrors = {};
-  //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  //   const phoneRegex =
-  //     /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,3}[-\s.]?[0-9]{3,6}$/;
-  //   const passwordRegex =
-  //     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-  //   // First Name validation
-  //   if (!formData.firstName.trim()) {
-  //     newErrors.firstName = "First name is required";
-  //   } else if (formData.firstName.length < 2) {
-  //     newErrors.firstName = "First name must be at least 2 characters";
-  //   } else if (formData.firstName.length > 50) {
-  //     newErrors.firstName = "First name must be less than 50 characters";
-  //   }
-
-  //   // Last Name validation
-  //   if (!formData.lastName.trim()) {
-  //     newErrors.lastName = "Last name is required";
-  //   } else if (formData.lastName.length < 2) {
-  //     newErrors.lastName = "Last name must be at least 2 characters";
-  //   } else if (formData.lastName.length > 50) {
-  //     newErrors.lastName = "Last name must be less than 50 characters";
-  //   }
-
-  //   // Email validation
-  //   if (!formData.email.trim()) {
-  //     newErrors.email = "Email is required";
-  //   } else if (!emailRegex.test(formData.email)) {
-  //     newErrors.email = "Please enter a valid email address";
-  //   }
-
-  //   // Password validation
-  //   if (!formData.password) {
-  //     newErrors.password = "Password is required";
-  //   } else if (!passwordRegex.test(formData.password)) {
-  //     newErrors.password =
-  //       "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character";
-  //   }
-
-  //   // Confirm Password validation
-  //   if (!formData.confirmPassword) {
-  //     newErrors.confirmPassword = "Please confirm your password";
-  //   } else if (formData.password !== formData.confirmPassword) {
-  //     newErrors.confirmPassword = "Passwords do not match";
-  //   }
-
-  //   // Gender validation
-  //   if (!formData.gender) {
-  //     newErrors.gender = "Gender is required";
-  //   }
-
-  //   // Contact Number validation
-  //   if (!formData.contactNumber.trim()) {
-  //     newErrors.contactNumber = "Contact number is required";
-  //   } else if (!phoneRegex.test(formData.contactNumber)) {
-  //     newErrors.contactNumber = "Please enter a valid phone number";
-  //   }
-
-  //   // Avatar validation
-  //   if (!formData.avatar) {
-  //     newErrors.avatar = "Profile picture is required";
-  //   } else if (formData.avatar.size > 2 * 1024 * 1024) {
-  //     // 2MB limit
-  //     newErrors.avatar = "Image size must be less than 2MB";
-  //   } else if (!formData.avatar.type.match("image.*")) {
-  //     newErrors.avatar = "Only image files are allowed";
-  //   }
-
-  //   setErrors(newErrors);
-  //   return Object.keys(newErrors).length === 0;
-  // };
-  const validateForm = () => {
-    const newErrors = {};
-
+  // New function to validate a single field
+  const validateField = (name, value) => {
     // Regular expressions
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     const phoneRegex = /^(?:\+94|0|94)?(?:7[01245678])(?:\d{7})$/;
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    // First Name validation
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    } else if (formData.firstName.length < 2) {
-      newErrors.firstName = "First name must be at least 2 characters";
-    } else if (formData.firstName.length > 50) {
-      newErrors.firstName = "First name must be less than 50 characters";
-    }
+    let errorMessage = "";
 
-    // Last Name validation
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
-    } else if (formData.lastName.length < 2) {
-      newErrors.lastName = "Last name must be at least 2 characters";
-    } else if (formData.lastName.length > 50) {
-      newErrors.lastName = "Last name must be less than 50 characters";
-    }
-
-    // Email validation
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (!passwordRegex.test(formData.password)) {
-      newErrors.password =
-        "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character";
-    }
-
-    // Confirm Password validation
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    // Gender validation
-    if (!formData.gender) {
-      newErrors.gender = "Gender is required";
-    }
-
-    // Contact Number validation - Sri Lankan specific
-    if (!formData.contactNumber.trim()) {
-      newErrors.contactNumber = "Contact number is required";
-    } else {
-      // Remove all non-digit characters
-      const cleanedNumber = formData.contactNumber.replace(/\D/g, "");
-
-      // Validate Sri Lankan mobile number formats
-      if (!phoneRegex.test(cleanedNumber)) {
-        newErrors.contactNumber =
-          "Please enter a valid mobile number (07XXXXXXXX)";
-      } else {
-        // Additional length checks
-        if (cleanedNumber.startsWith("94") && cleanedNumber.length !== 11) {
-          newErrors.contactNumber =
-            "International format must be 11 digits (947XXXXXXXX)";
-        } else if (
-          cleanedNumber.startsWith("0") &&
-          cleanedNumber.length !== 10
-        ) {
-          newErrors.contactNumber =
-            "Local numbers must be 10 digits (07XXXXXXXX)";
-        } else if (!/^(94|0|)\d+$/.test(cleanedNumber)) {
-          newErrors.contactNumber = "Number must start with 0 or 94";
+    switch (name) {
+      case "firstName":
+        if (!value.trim()) {
+          errorMessage = "First name is required";
+        } else if (value.length < 2) {
+          errorMessage = "First name must be at least 2 characters";
+        } else if (value.length > 50) {
+          errorMessage = "First name must be less than 50 characters";
         }
-      }
+        break;
+
+      case "lastName":
+        if (!value.trim()) {
+          errorMessage = "Last name is required";
+        } else if (value.length < 2) {
+          errorMessage = "Last name must be at least 2 characters";
+        } else if (value.length > 50) {
+          errorMessage = "Last name must be less than 50 characters";
+        }
+        break;
+
+      case "email":
+        if (!value.trim()) {
+          errorMessage = "Email is required";
+        } else if (!emailRegex.test(value)) {
+          errorMessage = "Please enter a valid email address";
+        }
+        break;
+
+      case "password":
+        if (!value) {
+          errorMessage = "Password is required";
+        } else if (!passwordRegex.test(value)) {
+          errorMessage = "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character";
+        }
+        break;
+
+      case "confirmPassword":
+        if (!value) {
+          errorMessage = "Please confirm your password";
+        } else if (value !== formData.password) {
+          errorMessage = "Passwords do not match";
+        }
+        break;
+
+      case "gender":
+        if (!value) {
+          errorMessage = "Gender is required";
+        }
+        break;
+
+      case "contactNumber":
+        if (!value.trim()) {
+          errorMessage = "Contact number is required";
+        } else {
+          // Remove all non-digit characters
+          const cleanedNumber = value.replace(/\D/g, "");
+          
+          // Check max length first
+          if (cleanedNumber.startsWith("94") && cleanedNumber.length > 11) {
+            errorMessage = "Sri Lankan international format number cannot exceed 11 digits";
+          } else if (!cleanedNumber.startsWith("94") && cleanedNumber.length > 10) {
+            errorMessage = "Sri Lankan local number cannot exceed 10 digits";
+          }
+          // Then validate format
+          else if (!phoneRegex.test(cleanedNumber)) {
+            errorMessage = "Please enter a valid mobile number (07XXXXXXXX)";
+          } else {
+            // Additional length checks
+            if (cleanedNumber.startsWith("94") && cleanedNumber.length !== 11) {
+              errorMessage = "International format must be exactly 11 digits (947XXXXXXXX)";
+            } else if (cleanedNumber.startsWith("0") && cleanedNumber.length !== 10) {
+              errorMessage = "Local numbers must be exactly 10 digits (07XXXXXXXX)";
+            } else if (!/^(94|0|)\d+$/.test(cleanedNumber)) {
+              errorMessage = "Number must start with 0 or 94";
+            }
+          }
+        }
+        break;
+
+      case "avatar":
+        if (!value) {
+          errorMessage = "Profile picture is required";
+        } else if (value.size > 2 * 1024 * 1024) { // 2MB limit
+          errorMessage = "Image size must be less than 2MB";
+        } else if (!value.type.match("image.*")) {
+          errorMessage = "Only image files are allowed";
+        }
+        break;
+
+      default:
+        break;
     }
 
-    // Avatar validation
-    if (!formData.avatar) {
-      newErrors.avatar = "Profile picture is required";
-    } else if (formData.avatar.size > 2 * 1024 * 1024) {
-      // 2MB limit
-      newErrors.avatar = "Image size must be less than 2MB";
-    } else if (!formData.avatar.type.match("image.*")) {
-      newErrors.avatar = "Only image files are allowed";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return errorMessage;
   };
+
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: null });
-    }
-
-    if (type === "file") {
-      const file = files[0];
-      setFormData({ ...formData, avatar: file });
-      setPreview(URL.createObjectURL(file));
+    
+    let newValue;
+    if (type === "file" && files[0]) {
+      newValue = files[0];
+      setPreview(URL.createObjectURL(files[0]));
     } else {
-      setFormData({ ...formData, [name]: value });
+      newValue = value;
     }
+
+    // Update form data
+    setFormData(prev => ({
+      ...prev,
+      [name]: newValue
+    }));
+
+    // Validate the field
+    const errorMessage = validateField(name, newValue);
+    
+    // Special case for confirmPassword - validate again if password changes
+    if (name === "password" && formData.confirmPassword) {
+      const confirmPasswordError = formData.confirmPassword !== value ? 
+        "Passwords do not match" : "";
+      
+      setErrors(prev => ({
+        ...prev,
+        [name]: errorMessage,
+        confirmPassword: confirmPasswordError
+      }));
+    } else {
+      // Update errors for the current field
+      setErrors(prev => ({
+        ...prev,
+        [name]: errorMessage
+      }));
+    }
+  };
+
+  // Update validateForm to use validateField for consistency
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+
+    // Validate each field
+    Object.entries(formData).forEach(([fieldName, fieldValue]) => {
+      const errorMessage = validateField(fieldName, fieldValue);
+      if (errorMessage) {
+        newErrors[fieldName] = errorMessage;
+        isValid = false;
+      }
+    });
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleSubmit = async (e) => {
@@ -471,6 +449,7 @@ const RegisterForm = () => {
                         ? "border-red-500"
                         : "border-gray-300"
                     }`}
+                    maxLength="10" // Add this attribute for local format
                     required
                   />
                 </div>
@@ -529,47 +508,72 @@ const RegisterForm = () => {
                 )}
               </div>
 
-              {/* Submit Button */}
+              {/* Action Buttons */}
               <div className="col-span-1 md:col-span-2 pt-2">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                    isLoading
-                      ? "bg-blue-400 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Creating Account...
-                    </>
-                  ) : (
-                    "Register Now"
-                  )}
-                </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Register Button */}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                      isLoading
+                        ? "bg-blue-400 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Creating Account...
+                      </>
+                    ) : (
+                      "Register Now"
+                    )}
+                  </button>
+                  
+                  {/* Login Button */}
+                  <a 
+                    href="/login"
+                    className="w-full flex items-center justify-center py-3 px-4 border border-blue-500 rounded-lg shadow-sm text-blue-600 font-medium hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                  >
+                    <FaSignInAlt className="mr-2" />
+                    Login
+                  </a>
+                </div>
               </div>
             </form>
+            
+            {/* Optional Login Link */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Already have an account?{" "}
+                <a
+                  href="/login"
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                >
+                  Sign in
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </div>

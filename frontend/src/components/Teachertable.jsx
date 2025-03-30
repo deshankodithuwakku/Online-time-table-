@@ -35,6 +35,20 @@ const TeachersTable = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Update phone validation function
+  const validatePhoneNumber = (phone) => {
+    // Check if the phone starts with 0 and contains only digits
+    const validFormat = /^0\d*$/.test(phone);
+    
+    // Check if length is maximum 10 digits
+    const validLength = phone.length <= 10;
+    
+    // Check if it starts with 0
+    const startsWithZero = phone.startsWith('0');
+    
+    return validFormat && validLength && startsWithZero;
+  };
+
   const navigate = useNavigate();
   const handleUserProfileClick = (userId) => {
     navigate(`/teacherprofile/${userId}`);
@@ -120,18 +134,56 @@ const TeachersTable = () => {
 
   const handleAddChange = (e) => {
     const { name, value } = e.target;
-    setAddFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: null,
+    
+    // For contact number, enforce numeric-only input starting with 0
+    if (name === 'contactNumber') {
+      // Only allow digits, and ensure it starts with 0
+      const newValue = value.replace(/[^\d]/g, '');
+      
+      // If empty or starts with 0, update the value
+      if (newValue === '' || newValue.startsWith('0')) {
+        setAddFormData((prevData) => ({
+          ...prevData,
+          [name]: newValue.substring(0, 10), // Limit to 10 digits
+        }));
+      } else if (newValue !== '') {
+        // If there's input but doesn't start with 0, force it to start with 0
+        setAddFormData((prevData) => ({
+          ...prevData,
+          [name]: '0' + newValue.substring(0, 9), // Add 0 at beginning and limit to total 10 digits
+        }));
+      }
+      
+      // Validate and set appropriate error message
+      if (!value.trim()) {
+        setErrors(prev => ({ ...prev, contactNumber: "Contact number is required" }));
+      } else if (!value.startsWith('0')) {
+        setErrors(prev => ({ ...prev, contactNumber: "Number must start with 0" }));
+      } else if (!validatePhoneNumber(value)) {
+        setErrors(prev => ({ 
+          ...prev, 
+          contactNumber: "Please enter a valid phone number (10 digits starting with 0)" 
+        }));
+      } else {
+        setErrors(prev => ({ ...prev, contactNumber: null }));
+      }
+    } else {
+      // For other fields, proceed normally
+      setAddFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
       }));
+      
+      // Clear error when user types
+      if (errors[name]) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: null,
+        }));
+      }
     }
   };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -242,8 +294,15 @@ const TeachersTable = () => {
     }
 
     if (!addFormData.gender) newErrors.gender = "Gender is required";
-    if (!addFormData.contactNumber)
+    
+    // Updated contact number validation
+    if (!addFormData.contactNumber) {
       newErrors.contactNumber = "Contact number is required";
+    } else if (!addFormData.contactNumber.startsWith('0')) {
+      newErrors.contactNumber = "Number must start with 0";
+    } else if (!validatePhoneNumber(addFormData.contactNumber) || addFormData.contactNumber.length !== 10) {
+      newErrors.contactNumber = "Please enter a valid 10-digit phone number starting with 0";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

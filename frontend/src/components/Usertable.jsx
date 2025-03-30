@@ -27,6 +27,12 @@ const UsersTable = () => {
     contactNumber: "",
     avatarFile: null,
   });
+  // Add new state variables for search and filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    status: ''
+  });
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [addStudentFormErrors, setAddStudentFormErrors] = useState({
     firstName: "",
     lastName: "",
@@ -378,6 +384,81 @@ const UsersTable = () => {
     setVerifyUserModal(false);
   };
 
+  // Add handler for search input
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Add handler for filter changes
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Add function to handle PDF download
+  const handleDownloadPdf = async () => {
+    try {
+      setPdfLoading(true);
+      const query = new URLSearchParams();
+      if (filters.status) query.append("status", filters.status);
+      if (searchTerm) query.append("search", searchTerm);
+      query.append("download", "pdf");
+
+      const response = await fetch(
+        `http://localhost:8080/api/admin/getallusers?${query.toString()}`,
+        { credentials: "include" }
+      );
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Create temporary link to trigger download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "users.pdf";
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      toast.error(`Failed to download PDF: ${err.message}`);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  // Filter users based on search term and filters
+  const filteredUsers = users.filter(user => {
+    let matchesSearch = true;
+    let matchesStatus = true;
+
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      matchesSearch = 
+        user.firstName.toLowerCase().includes(searchLower) || 
+        user.lastName.toLowerCase().includes(searchLower) || 
+        user.email.toLowerCase().includes(searchLower);
+    }
+
+    if (filters.status) {
+      matchesStatus = user.status === filters.status;
+    }
+
+    return matchesSearch && matchesStatus;
+  });
+
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
   console.log(users);
@@ -385,13 +466,85 @@ const UsersTable = () => {
     <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-gray-800">Users List</h2>
-        <button
-          onClick={() => setShowAddStudentModal(true)}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
-        >
-          Add Student
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={handleDownloadPdf}
+            disabled={pdfLoading}
+            className={`px-4 py-2 text-white rounded transition ${
+              pdfLoading
+                ? "bg-red-400 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600"
+            }`}
+          >
+            {pdfLoading ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Downloading...
+              </>
+            ) : (
+              "Download PDF"
+            )}
+          </button>
+          <button
+            onClick={() => setShowAddStudentModal(true)}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+          >
+            Add Student
+          </button>
+        </div>
       </div>
+
+      {/* Search and Filter Section */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Search
+          </label>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search by name or email..."
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <select
+            name="status"
+            value={filters.status}
+            onChange={handleFilterChange}
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="deactive">Deactive</option>
+          </select>
+        </div>
+      </div>
+
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-gray-200 text-gray-700 text-sm uppercase tracking-wider">
@@ -405,7 +558,7 @@ const UsersTable = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <tr
               key={user.id}
               className="border-b hover:bg-gray-50 transition cursor-pointer"
@@ -418,7 +571,7 @@ const UsersTable = () => {
               </td>
               <td className="px-4 py-3">
                 <img
-                  src={`http://localhost:8080${user.avatar}`}
+                  src={`http://localhost:8080/${user.avatar}`}
                   alt="Avatar"
                   className="w-10 h-10 rounded-full border"
                 />
@@ -472,6 +625,13 @@ const UsersTable = () => {
           ))}
         </tbody>
       </table>
+      
+      {filteredUsers.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">No users found matching your search criteria.</p>
+        </div>
+      )}
+
       {/* Edit User Modal */}
       {showEditModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-opacity-20 backdrop-blur-lg z-50">

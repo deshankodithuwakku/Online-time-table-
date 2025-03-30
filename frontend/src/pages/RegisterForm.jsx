@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,21 @@ const RegisterForm = () => {
   });
   const [errors, setErrors] = useState({});
   const [preview, setPreview] = useState(null);
+  const navigate = useNavigate(); // Initialize navigate function
+
+  // Add phone validation function
+  const validatePhoneNumber = (phone) => {
+    // Check if the phone starts with 0 and contains only digits
+    const validFormat = /^0\d*$/.test(phone);
+    
+    // Check if length is maximum 10 digits
+    const validLength = phone.length <= 10;
+    
+    // Check if it starts with 0
+    const startsWithZero = phone.startsWith('0');
+    
+    return validFormat && validLength && startsWithZero;
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -65,32 +81,13 @@ const RegisterForm = () => {
       newErrors.gender = "Gender is required";
     }
 
-    // Contact Number validation - Sri Lankan specific
-    if (!formData.contactNumber.trim()) {
+    // Contact Number validation - updated
+    if (!formData.contactNumber) {
       newErrors.contactNumber = "Contact number is required";
-    } else {
-      // Remove all non-digit characters
-      let cleanedNumber = formData.contactNumber.replace(/\D/g, "");
-
-      // Convert international format to local format
-      if (cleanedNumber.startsWith("94") && cleanedNumber.length === 11) {
-        cleanedNumber = "0" + cleanedNumber.substring(2);
-      } else if (
-        cleanedNumber.startsWith("+94") &&
-        cleanedNumber.length === 12
-      ) {
-        cleanedNumber = "0" + cleanedNumber.substring(3);
-      }
-
-      // Validate the number
-      if (!phoneRegex.test(cleanedNumber)) {
-        newErrors.contactNumber =
-          "Please enter a valid Sri Lankan mobile number (07XXXXXXXX)";
-      } else if (cleanedNumber.length !== 10) {
-        newErrors.contactNumber = "Phone number must be 10 digits (07XXXXXXXX)";
-      } else if (!cleanedNumber.startsWith("07")) {
-        newErrors.contactNumber = "Must start with 07 for mobile numbers";
-      }
+    } else if (!formData.contactNumber.startsWith('0')) {
+      newErrors.contactNumber = "Number must start with 0";
+    } else if (!validatePhoneNumber(formData.contactNumber) || formData.contactNumber.length !== 10) {
+      newErrors.contactNumber = "Please enter a valid 10-digit phone number starting with 0";
     }
 
     // Avatar validation
@@ -119,7 +116,41 @@ const RegisterForm = () => {
       const file = files[0];
       setFormData({ ...formData, avatar: file });
       setPreview(URL.createObjectURL(file));
-    } else {
+    } 
+    // Handle contact number validation
+    else if (name === 'contactNumber') {
+      // Only allow digits, and ensure it starts with 0
+      const newValue = value.replace(/[^\d]/g, '');
+      
+      // If empty or starts with 0, update the value
+      if (newValue === '' || newValue.startsWith('0')) {
+        setFormData({ 
+          ...formData, 
+          [name]: newValue.substring(0, 10) // Limit to 10 digits
+        });
+      } else if (newValue !== '') {
+        // If there's input but doesn't start with 0, force it to start with 0
+        setFormData({ 
+          ...formData, 
+          [name]: '0' + newValue.substring(0, 9) // Add 0 at beginning and limit to total 10 digits
+        });
+      }
+      
+      // Validate and set appropriate error message
+      if (!value.trim()) {
+        setErrors(prev => ({ ...prev, contactNumber: "Contact number is required" }));
+      } else if (!value.startsWith('0')) {
+        setErrors(prev => ({ ...prev, contactNumber: "Number must start with 0" }));
+      } else if (!validatePhoneNumber(value)) {
+        setErrors(prev => ({ 
+          ...prev, 
+          contactNumber: "Please enter a valid phone number (10 digits starting with 0)" 
+        }));
+      } else {
+        setErrors(prev => ({ ...prev, contactNumber: null }));
+      }
+    }
+    else {
       setFormData({ ...formData, [name]: value });
     }
   };
@@ -162,6 +193,9 @@ const RegisterForm = () => {
       });
       setPreview(null);
       setErrors({});
+      
+      // Redirect to login page after successful registration
+      navigate("/login");
     } catch (err) {
       setErrors({ ...errors, form: err.message || "Something went wrong" });
       toast.error(err);
@@ -380,6 +414,16 @@ const RegisterForm = () => {
             >
               Register
             </button>
+          </div>
+          
+          {/* Login Option */}
+          <div className="col-span-2 mt-6 text-center border-t pt-4">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <a href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                Sign in
+              </a>
+            </p>
           </div>
         </form>
       </div>

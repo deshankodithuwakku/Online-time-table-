@@ -127,6 +127,27 @@ const NoticeTable = () => {
       ...prev,
       [name]: value,
     }));
+    
+    // Perform real-time validation
+    const newErrors = { ...errors };
+    
+    if (name === 'title') {
+      if (value.length > 40) {
+        newErrors.title = "Title must be less than 40 characters";
+      } else {
+        newErrors.title = "";
+      }
+    }
+    
+    if (name === 'message') {
+      if (value.length < 10) {
+        newErrors.message = "Message must be at least 10 characters";
+      } else {
+        newErrors.message = "";
+      }
+    }
+    
+    setErrors(newErrors);
   };
 
   const validateForm = () => {
@@ -140,13 +161,16 @@ const NoticeTable = () => {
     if (!newNotice.title.trim()) {
       newErrors.title = "Title is required";
       isValid = false;
-    } else if (newNotice.title.length > 100) {
-      newErrors.title = "Title must be less than 100 characters";
+    } else if (newNotice.title.length > 40) {
+      newErrors.title = "Title must be less than 40 characters";
       isValid = false;
     }
 
     if (!newNotice.message.trim()) {
       newErrors.message = "Message is required";
+      isValid = false;
+    } else if (newNotice.message.length < 10) {
+      newErrors.message = "Message must be at least 10 characters";
       isValid = false;
     } else if (newNotice.message.length > 500) {
       newErrors.message = "Message must be less than 500 characters";

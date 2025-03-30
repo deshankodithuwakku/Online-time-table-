@@ -90,8 +90,21 @@ const LoginForm = () => {
           >
             Login
           </button>
-          <a href="/resendotp">Forgot Password ?</a>
+          <div className="flex justify-between items-center mt-2">
+            <a href="/resendotp" className="text-sm text-blue-600 hover:text-blue-800">Forgot Password?</a>
+            <a href="/register" className="text-sm text-blue-600 hover:text-blue-800">Register</a>
+          </div>
         </form>
+        
+        {/* Register Option */}
+        <div className="mt-6 text-center border-t pt-4">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{" "}
+            <a href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              Sign up now
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
