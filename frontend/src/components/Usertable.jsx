@@ -32,7 +32,7 @@ const UsersTable = () => {
   const [filters, setFilters] = useState({
     status: ''
   });
-  const [pdfLoading, setPdfLoading] = useState(false);
+  // Removed pdfLoading state variable
   const [addStudentFormErrors, setAddStudentFormErrors] = useState({
     firstName: "",
     lastName: "",
@@ -79,8 +79,22 @@ const UsersTable = () => {
   };
 
   const validatePhone = (phone) => {
-    const re = /^[0-9]{10,15}$/;
+    // Sri Lankan phone number validation
+    // Format: 0XX XXXXXXX where the total length is 10 digits
+    // Mobile numbers typically start with 07X
+    const re = /^0[1-9][0-9]{8}$/;
     return re.test(phone);
+  };
+
+  // Add a handler to allow only numeric input for phone numbers
+  const handleNumericInput = (e) => {
+    // Allow only: numbers, backspace, tab, delete, arrows, home, end
+    const allowedKeys = ['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    
+    // If the key is not a number and not in allowed special keys, prevent default behavior
+    if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
+      e.preventDefault();
+    }
   };
 
   const validatePassword = (password) => {
@@ -129,7 +143,7 @@ const UsersTable = () => {
       valid = false;
     } else if (!validatePhone(addStudentFormData.contactNumber)) {
       newErrors.contactNumber =
-        "Please enter a valid phone number (10-15 digits)";
+        "Please enter a valid Sri Lankan phone number (10 digits starting with 0)";
       valid = false;
     }
 
@@ -143,6 +157,97 @@ const UsersTable = () => {
       ...prevData,
       [name]: value,
     }));
+    
+    // Real-time validation
+    switch (name) {
+      case "firstName":
+        if (!value.trim()) {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            firstName: "First name is required"
+          }));
+        } else {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            firstName: ""
+          }));
+        }
+        break;
+      
+      case "lastName":
+        if (!value.trim()) {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            lastName: "Last name is required"
+          }));
+        } else {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            lastName: ""
+          }));
+        }
+        break;
+      
+      case "email":
+        if (!value) {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            email: "Email is required"
+          }));
+        } else if (!validateEmail(value)) {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            email: "Please enter a valid email"
+          }));
+        } else {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            email: ""
+          }));
+        }
+        break;
+      
+      case "password":
+        if (!value) {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            password: "Password is required"
+          }));
+        } else if (!validatePassword(value)) {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            password: "Password must be at least 8 characters"
+          }));
+        } else {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            password: ""
+          }));
+        }
+        break;
+      
+      case "contactNumber":
+        if (!value) {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            contactNumber: "Contact number is required"
+          }));
+        } else if (!validatePhone(value)) {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            contactNumber: "Please enter a valid Sri Lankan phone number (10 digits starting with 0)"
+          }));
+        } else {
+          setAddStudentFormErrors(prev => ({
+            ...prev,
+            contactNumber: ""
+          }));
+        }
+        break;
+      
+      default:
+        break;
+    }
   };
 
   const handleAddStudentSubmit = async (e) => {
@@ -398,47 +503,6 @@ const UsersTable = () => {
     }));
   };
 
-  // Add function to handle PDF download
-  const handleDownloadPdf = async () => {
-    try {
-      setPdfLoading(true);
-      const query = new URLSearchParams();
-      if (filters.status) query.append("status", filters.status);
-      if (searchTerm) query.append("search", searchTerm);
-      query.append("download", "pdf");
-
-      const response = await fetch(
-        `http://localhost:8080/api/admin/getallusers?${query.toString()}`,
-        { credentials: "include" }
-      );
-
-      if (response.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      // Create temporary link to trigger download
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "users.pdf";
-      document.body.appendChild(a);
-      a.click();
-
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 100);
-    } catch (err) {
-      toast.error(`Failed to download PDF: ${err.message}`);
-    } finally {
-      setPdfLoading(false);
-    }
-  };
-
   // Filter users based on search term and filters
   const filteredUsers = users.filter(user => {
     let matchesSearch = true;
@@ -467,43 +531,7 @@ const UsersTable = () => {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-gray-800">Users List</h2>
         <div className="flex space-x-2">
-          <button
-            onClick={handleDownloadPdf}
-            disabled={pdfLoading}
-            className={`px-4 py-2 text-white rounded transition ${
-              pdfLoading
-                ? "bg-red-400 cursor-not-allowed"
-                : "bg-red-500 hover:bg-red-600"
-            }`}
-          >
-            {pdfLoading ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Downloading...
-              </>
-            ) : (
-              "Download PDF"
-            )}
-          </button>
+          {/* Removed PDF download button */}
           <button
             onClick={() => setShowAddStudentModal(true)}
             className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
@@ -684,11 +712,14 @@ const UsersTable = () => {
                   Contact Number
                 </label>
                 <input
-                  type="text"
+                  type="tel"
                   name="contactNumber"
                   value={editFormData.contactNumber}
                   onChange={handleEditChange}
+                  onKeyDown={handleNumericInput}
+                  placeholder="07XXXXXXXX"
                   className="w-full px-3 py-2 border rounded"
+                  maxLength={10}
                   required
                 />
               </div>
@@ -898,11 +929,14 @@ const UsersTable = () => {
                       Contact Number
                     </label>
                     <input
-                      type="text"
+                      type="tel"
                       name="contactNumber"
                       value={addStudentFormData.contactNumber}
                       onChange={handleAddStudentChange}
+                      onKeyDown={handleNumericInput}
+                      placeholder="07XXXXXXXX"
                       className="w-full px-3 py-2 border rounded"
+                      maxLength={10}
                       required
                     />
                     {addStudentFormErrors.contactNumber && (
