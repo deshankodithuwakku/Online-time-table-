@@ -29,7 +29,7 @@ import NotificationProfilePage from "./pages/NotificationProfilePage";
 import UserActivitiesTable from "./components/UserActivitiesTable";
 import Requesttable from "./components/Requesttable";
 import NoticeTable from "./components/NoticeTable";
-
+import NoticeProfilePage from "./pages/NoticeProfilePage";
 
 const App = () => {
   return (
@@ -73,10 +73,8 @@ const MainContent = () => {
           <Route path="/teacherprofile/:id" element={<Teacherprofile />} />
           <Route path="/schuledetails/:id" element={<Singleschdulepage />} />
           <Route path="/coursedetails/:id" element={<CourseProfilePage />} />
-          <Route
-            path="/notificationdetails/:id"
-            element={<NotificationProfilePage />}
-          />
+          <Route path="/notificationdetails/:id" element={<NotificationProfilePage />} />
+          <Route path="/noticedetails/:id" element={<NoticeProfilePage />} />
           <Route path="/addschecule" element={<AddScheduleForm />} />
           <Route path="/assignschecule" element={<AssignScheduleForm />} />
         </Routes>

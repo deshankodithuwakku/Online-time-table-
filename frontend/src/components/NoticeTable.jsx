@@ -42,7 +42,7 @@ const NoticeTable = () => {
       if (filters.endDate) query.append("endDate", filters.endDate);
 
       const response = await fetch(
-        `http://localhost:8080/api/notice/getNotices?${query.toString()}`,
+        `http://localhost:8080/api/admin/getallnotice?${query.toString()}`,
         {
           credentials: "include",
         }
@@ -82,7 +82,7 @@ const NoticeTable = () => {
       query.append("download", "pdf");
 
       const response = await fetch(
-        `http://localhost:8080/api/notice/getNotices?${query.toString()}`,
+        `http://localhost:8080/api/admin/getallnotice?${query.toString()}`,
         { credentials: "include" }
       );
 
@@ -168,7 +168,7 @@ const NoticeTable = () => {
     }
     try {
       const response = await fetch(
-        "http://localhost:8080/api/notice/addNotice",
+        "http://localhost:8080/api/admin/addnotice",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -205,7 +205,7 @@ const NoticeTable = () => {
   const confirmDelete = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/notice/deleteNotice",
+        "http://localhost:8080/api/admin/deletenotice",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -253,7 +253,7 @@ const NoticeTable = () => {
     }
     try {
       const response = await fetch(
-        "http://localhost:8080/api/notice/updateNotice",
+        "http://localhost:8080/api/admin/updatenotice",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -368,19 +368,22 @@ const NoticeTable = () => {
           />
         </div>
       </div>
-      <button
-        onClick={fetchNotices}
-        className="px-4 py-2 mb-4 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-      >
-        Apply Filters
-      </button>
+
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={fetchNotices}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+        >
+          Apply Filters
+        </button>
+      </div>
 
       {/* Notices Table */}
-      <table className="w-full text-left border-collapse">
+      <table className="mt-4 min-w-full border-collapse">
         <thead>
-          <tr className="bg-gray-200 text-gray-700 text-sm uppercase tracking-wider">
-            <th className="px-4 py-3">Title</th>
-            <th className="px-4 py-3">Message</th>
+          <tr className="bg-gray-100">
+            <th className="px-4 py-3 text-left">Title</th>
+            <th className="px-4 py-3 text-left">Message</th>
             <th className="px-4 py-3">Recipient Type</th>
             <th className="px-4 py-3">Created At</th>
             <th className="px-4 py-3">Actions</th>
@@ -392,7 +395,14 @@ const NoticeTable = () => {
               key={notice.id}
               className="border-b hover:bg-gray-50 transition"
             >
-              <td className="px-4 py-3">{notice.title}</td>
+              <td
+                className="px-4 py-3 cursor-pointer hover:text-blue-600"
+                onClick={() =>
+                  navigate(`/noticedetails/${notice.id}`)
+                }
+              >
+                {notice.title}
+              </td>
               <td className="px-4 py-3">
                 {notice.message.length > 50
                   ? `${notice.message.substring(0, 50)}...`
@@ -403,7 +413,7 @@ const NoticeTable = () => {
                   className={`px-2 py-1 text-xs font-semibold rounded ${
                     notice.recipientType === "all"
                       ? "bg-purple-100 text-purple-800"
-                      : notice.recipientType === "student"
+                      : notice.recipientType === "students"
                       ? "bg-green-100 text-green-800"
                       : "bg-blue-100 text-blue-800"
                   }`}
@@ -416,13 +426,19 @@ const NoticeTable = () => {
               </td>
               <td className="px-4 py-3 space-x-2">
                 <button
-                  onClick={() => handleUpdateClick(notice)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpdateClick(notice);
+                  }}
                   className="px-2 py-1 text-xs font-semibold bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
                 >
                   Update
                 </button>
                 <button
-                  onClick={() => handleDeleteClick(notice.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteClick(notice.id);
+                  }}
                   className="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded hover:bg-red-600 transition"
                 >
                   Delete
