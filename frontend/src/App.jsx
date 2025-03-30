@@ -29,8 +29,7 @@ import NotificationProfilePage from "./pages/NotificationProfilePage";
 import UserActivitiesTable from "./components/UserActivitiesTable";
 import Requesttable from "./components/Requesttable";
 import NoticeTable from "./components/NoticeTable";
-import AddNoticePage from "./pages/AddNoticePage";
-import NoticeDetailsPage from "./pages/NoticeDetailsPage";
+
 
 const App = () => {
   return (
@@ -62,11 +61,9 @@ const MainContent = () => {
           <Route path="/scheuletable" element={<ScheduleTable />} />
           <Route path="/coursetable" element={<CoursesTable />} />
           <Route path="/notificationtable" element={<NotificationsTable />} />
+          <Route path="/noticetable" element={<NoticeTable />} />
           <Route path="/activitytable" element={<UserActivitiesTable />} />
           <Route path="/requesttable" element={<Requesttable />} />
-          <Route path="/noticetable" element={<NoticeTable />} />
-          <Route path="/addnotice" element={<AddNoticePage />} />
-          <Route path="/noticedetails/:id" element={<NoticeDetailsPage />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/resendotp" element={<ResendOTPForm />} />

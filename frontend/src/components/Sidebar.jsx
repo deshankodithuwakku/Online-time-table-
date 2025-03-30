@@ -174,7 +174,7 @@ const Sidebar = () => {
               to="/noticetable"
               className="flex items-center p-3 hover:text-white"
             >
-              <LuNewspaper className="mr-3 text-xl" />
+              <IoNotificationsSharp className="mr-3 text-xl" />
               <span className="text-lg">Notice</span>
             </Link>
           </li>

@@ -165,14 +165,54 @@ const ScheduleTable = () => {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8080/api/admin/getallschedule?download=pdf",
+        { credentials: "include" }
+      );
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Create temporary link to trigger download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "schedules.pdf";
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      toast.error(`Failed to download PDF: ${err.message}`);
+    }
+  };
+
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
   return (
     <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-        Schedules List
-      </h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+          Schedules List
+        </h2>
+        <button
+          onClick={handleDownloadPdf}
+          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+        >
+          Download PDF
+        </button>
+      </div>
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-gray-200 text-gray-700 text-sm uppercase tracking-wider">

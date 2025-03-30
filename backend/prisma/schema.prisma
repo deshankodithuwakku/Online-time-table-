@@ -130,16 +130,16 @@ model ScheduleRequest {
   course  Course @relation(fields: [courseId], references: [id])
 }
 
-model Notice {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 enum RequestStatus {
   pending
   approved
   rejected
+}
+
+model Notice {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  message       String
+  recipientType RecipientType
+  createdAt     DateTime      @default(now())
 }
