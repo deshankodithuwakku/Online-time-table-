@@ -16,7 +16,7 @@ const TeacherProfilePage = () => {
           {
             credentials: "include",
           }
-        );
+        );           
         const data = await response.json();
         if (response.status === 401) {
           window.location.href = "/login";
