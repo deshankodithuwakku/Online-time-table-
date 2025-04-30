@@ -60,7 +60,7 @@ export const getNotices = async (req, res) => {
 
     if (title) {
       where.title = {
-        contains: title,
+        contains: title ,
         mode: "insensitive",
       };
     }
