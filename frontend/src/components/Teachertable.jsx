@@ -11,6 +11,16 @@ const TeachersTable = () => {
   const [selectedTeacherId, setSelectedTeacherId] = useState(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [selectedVerifyId, setSelectedVerifyId] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const [filters, setFilters] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    contactNumber: "",
+    status: "",
+  });
+  const [filteredTeachers, setFilteredTeachers] = useState([]);
 
   const [editFormData, setEditFormData] = useState({
     firstName: "",
@@ -35,24 +45,39 @@ const TeachersTable = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Update phone validation function
-  const validatePhoneNumber = (phone) => {
-    // Check if the phone starts with 0 and contains only digits
-    const validFormat = /^0\d*$/.test(phone);
-    
-    // Check if length is maximum 10 digits
-    const validLength = phone.length <= 10;
-    
-    // Check if it starts with 0
-    const startsWithZero = phone.startsWith('0');
-    
-    return validFormat && validLength && startsWithZero;
-  };
-
   const navigate = useNavigate();
   const handleUserProfileClick = (userId) => {
     navigate(`/teacherprofile/${userId}`);
   };
+
+  // useEffect(() => {
+  //   const fetchTeachers = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         "http://localhost:8080/api/admin/getallteachers",
+  //         {
+  //           credentials: "include",
+  //         }
+  //       );
+  //       const data = await response.json();
+  //       if (response.status === 401) {
+  //         window.location.href = "/login";
+  //         return;
+  //       }
+
+  //       console.log(data);
+  //       setTeachers(data.data);
+  //       toast.success(data.message);
+  //     } catch (error) {
+  //       setError(error.message);
+  //       toast.error("Error fetching teachers");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchTeachers();
+  // }, []);
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -69,8 +94,8 @@ const TeachersTable = () => {
           return;
         }
 
-        console.log(data);
         setTeachers(data.data);
+        setFilteredTeachers(data.data);
         toast.success(data.message);
       } catch (error) {
         setError(error.message);
@@ -82,6 +107,93 @@ const TeachersTable = () => {
 
     fetchTeachers();
   }, []);
+
+  const applyFilters = () => {
+    let results = [...teachers];
+
+    if (filters.firstName) {
+      results = results.filter((teacher) =>
+        teacher.firstName
+          .toLowerCase()
+          .includes(filters.firstName.toLowerCase())
+      );
+    }
+
+    if (filters.lastName) {
+      results = results.filter((teacher) =>
+        teacher.lastName.toLowerCase().includes(filters.lastName.toLowerCase())
+      );
+    }
+
+    if (filters.email) {
+      results = results.filter((teacher) =>
+        teacher.email.toLowerCase().includes(filters.email.toLowerCase())
+      );
+    }
+
+    if (filters.contactNumber) {
+      results = results.filter((teacher) =>
+        teacher.contactNumber.includes(filters.contactNumber)
+      );
+    }
+
+    if (filters.status) {
+      results = results.filter((teacher) => teacher.status === filters.status);
+    }
+
+    setFilteredTeachers(results);
+  };
+
+  // Reset filters function
+  const resetFilters = () => {
+    setFilters({
+      firstName: "",
+      lastName: "",
+      email: "",
+      contactNumber: "",
+      status: "",
+    });
+    setFilteredTeachers(teachers);
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // PDF Generation function
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      // Convert filters to query string
+      const queryParams = new URLSearchParams();
+      queryParams.append("download", "pdf");
+
+      // Add active filters
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) queryParams.append(key, value);
+      });
+
+      // Create a hidden iframe to trigger download
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = `http://localhost:8080/api/admin/getallteachers?${queryParams.toString()}`;
+      document.body.appendChild(iframe);
+
+      // Remove iframe after download
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 10000);
+    } catch (error) {
+      console.error("PDF download error:", error);
+      toast.error("Failed to download PDF");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleEdit = (teacher) => {
     setSelectedTeacherId(teacher.id);
@@ -134,56 +246,18 @@ const TeachersTable = () => {
 
   const handleAddChange = (e) => {
     const { name, value } = e.target;
-    
-    // For contact number, enforce numeric-only input starting with 0
-    if (name === 'contactNumber') {
-      // Only allow digits, and ensure it starts with 0
-      const newValue = value.replace(/[^\d]/g, '');
-      
-      // If empty or starts with 0, update the value
-      if (newValue === '' || newValue.startsWith('0')) {
-        setAddFormData((prevData) => ({
-          ...prevData,
-          [name]: newValue.substring(0, 10), // Limit to 10 digits
-        }));
-      } else if (newValue !== '') {
-        // If there's input but doesn't start with 0, force it to start with 0
-        setAddFormData((prevData) => ({
-          ...prevData,
-          [name]: '0' + newValue.substring(0, 9), // Add 0 at beginning and limit to total 10 digits
-        }));
-      }
-      
-      // Validate and set appropriate error message
-      if (!value.trim()) {
-        setErrors(prev => ({ ...prev, contactNumber: "Contact number is required" }));
-      } else if (!value.startsWith('0')) {
-        setErrors(prev => ({ ...prev, contactNumber: "Number must start with 0" }));
-      } else if (!validatePhoneNumber(value)) {
-        setErrors(prev => ({ 
-          ...prev, 
-          contactNumber: "Please enter a valid phone number (10 digits starting with 0)" 
-        }));
-      } else {
-        setErrors(prev => ({ ...prev, contactNumber: null }));
-      }
-    } else {
-      // For other fields, proceed normally
-      setAddFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
+    setAddFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: null,
       }));
-      
-      // Clear error when user types
-      if (errors[name]) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          [name]: null,
-        }));
-      }
     }
   };
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -294,15 +368,8 @@ const TeachersTable = () => {
     }
 
     if (!addFormData.gender) newErrors.gender = "Gender is required";
-    
-    // Updated contact number validation
-    if (!addFormData.contactNumber) {
+    if (!addFormData.contactNumber)
       newErrors.contactNumber = "Contact number is required";
-    } else if (!addFormData.contactNumber.startsWith('0')) {
-      newErrors.contactNumber = "Number must start with 0";
-    } else if (!validatePhoneNumber(addFormData.contactNumber) || addFormData.contactNumber.length !== 10) {
-      newErrors.contactNumber = "Please enter a valid 10-digit phone number starting with 0";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -388,18 +455,152 @@ const TeachersTable = () => {
     <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-gray-800">Teachers List</h2>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        >
-          Add Teacher
-        </button>
+
+        <div className="flex space-x-2">
+          <button
+            onClick={handleDownloadPdf}
+            disabled={isDownloading}
+            className={`px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition ${
+              isDownloading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isDownloading ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Downloading...
+              </>
+            ) : (
+              "Download PDF"
+            )}
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          >
+            Add Teacher
+          </button>
+        </div>
+      </div>
+      <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* First Name Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              First Name
+            </label>
+            <input
+              type="text"
+              name="firstName"
+              value={filters.firstName}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Filter by first name"
+            />
+          </div>
+
+          {/* Last Name Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Last Name
+            </label>
+            <input
+              type="text"
+              name="lastName"
+              value={filters.lastName}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Filter by last name"
+            />
+          </div>
+
+          {/* Email Filter */}
+          {/* <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="text"
+              name="email"
+              value={filters.email}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Filter by email"
+            />
+          </div> */}
+          {/* Contact Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contact Number
+            </label>
+            <input
+              type="text"
+              name="contactNumber"
+              value={filters.contactNumber}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Filter by contact"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="deactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex space-x-2">
+          <button
+            onClick={applyFilters}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          >
+            Apply Filters
+          </button>
+          <button
+            onClick={resetFilters}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+          >
+            Reset Filters
+          </button>
+        </div>
       </div>
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-gray-200 text-gray-700 text-sm uppercase tracking-wider">
             <th className="px-4 py-3">ID</th>
-            <th className="px-4 py-3">Avatar</th>
+            {/* <th className="px-4 py-3">Avatar</th> */}
             <th className="px-4 py-3">Name</th>
             <th className="px-4 py-3">Contact</th>
             <th className="px-4 py-3">Status</th>
@@ -407,7 +608,7 @@ const TeachersTable = () => {
           </tr>
         </thead>
         <tbody>
-          {teachers.map((teacher) => (
+          {filteredTeachers.map((teacher) => (
             <tr
               key={teacher.id}
               className="border-b hover:bg-gray-50 transition"
@@ -418,13 +619,13 @@ const TeachersTable = () => {
               >
                 {teacher.id}
               </td>
-              <td className="px-4 py-3">
+              {/* <td className="px-4 py-3">
                 <img
                   src={`http://localhost:8080${teacher.avatar}`}
                   alt="Avatar"
                   className="w-10 h-10 rounded-full border"
                 />
-              </td>
+              </td> */}
               <td className="px-4 py-3">
                 {teacher.firstName} {teacher.lastName}
               </td>

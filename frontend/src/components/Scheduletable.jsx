@@ -9,6 +9,14 @@ const ScheduleTable = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState(null);
+  const [filteredSchedules, setFilteredSchedules] = useState([]);
+  const [filters, setFilters] = useState({
+    courseName: "",
+    venue: "",
+    startDate: "",
+    endDate: "",
+    recipientType: "",
+  });
 
   const [editFormData, setEditFormData] = useState({
     date: "",
@@ -25,35 +33,148 @@ const ScheduleTable = () => {
     navigate(`/schuledetails/${scheduleId}`);
   };
 
-  const fetchSchedules = async () => {
+  // const fetchSchedules = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       "http://localhost:8080/api/admin/getallschedule",
+  //       {
+  //         credentials: "include",
+  //       }
+  //     );
+  //     const data = await response.json();
+  //     if (response.status === 401) {
+  //       window.location.href = "/login";
+  //       return;
+  //     }
+  //     if (response.ok) {
+  //       setSchedules(data.data);
+  //       setFilteredSchedules(data.data);
+  //     } else {
+  //       throw new Error(data.message || "Failed to fetch schedules");
+  //     }
+  //   } catch (error) {
+  //     setError(error.message);
+  //     toast.error(error.message || "Error fetching schedules");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const fetchSchedules = async (filterParams = {}) => {
     try {
+      setLoading(true);
+      setError(null);
+
+      const query = new URLSearchParams();
+      for (const [key, value] of Object.entries(filterParams)) {
+        if (value) query.append(key, value);
+      }
+
       const response = await fetch(
-        "http://localhost:8080/api/admin/getallschedule",
-        {
-          credentials: "include",
-        }
+        `http://localhost:8080/api/admin/getallschedule?${query.toString()}`,
+        { credentials: "include" }
       );
+
       const data = await response.json();
       if (response.status === 401) {
         window.location.href = "/login";
         return;
       }
       if (response.ok) {
-        setSchedules(data.data);
+        setSchedules(data.data || []);
+        setFilteredSchedules(data.data || []);
+        if (data.data && data.data.length === 0) {
+          toast.info("No schedules found matching your criteria");
+        }
       } else {
         throw new Error(data.message || "Failed to fetch schedules");
       }
     } catch (error) {
       setError(error.message);
       toast.error(error.message || "Error fetching schedules");
+      // On error, reset to show all schedules
+      fetchSchedules(); // Fetch all schedules without filters
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchSchedules();
   }, []);
+  // const applyFilters = () => {
+  //   let result = [...schedules];
+
+  //   if (filters.courseName) {
+  //     result = result.filter((schedule) =>
+  //       schedule.course?.name
+  //         ?.toLowerCase()
+  //         .includes(filters.courseName.toLowerCase())
+  //     );
+  //   }
+
+  //   if (filters.venue) {
+  //     result = result.filter((schedule) =>
+  //       schedule.venue.toLowerCase().includes(filters.venue.toLowerCase())
+  //     );
+  //   }
+
+  //   if (filters.startDate) {
+  //     result = result.filter(
+  //       (schedule) => new Date(schedule.date) >= new Date(filters.startDate)
+  //     );
+  //   }
+
+  //   if (filters.endDate) {
+  //     result = result.filter(
+  //       (schedule) => new Date(schedule.date) <= new Date(filters.endDate)
+  //     );
+  //   }
+
+  //   if (filters.recipientType) {
+  //     result = result.filter(
+  //       (schedule) => schedule.recipientType === filters.recipientType
+  //     );
+  //   }
+
+  //   setFilteredSchedules(result);
+  // };
+  const applyFilters = () => {
+    const hasFilters = Object.values(filters).some((val) => val !== "");
+
+    if (hasFilters) {
+      fetchSchedules(filters);
+    } else {
+      fetchSchedules();
+    }
+  };
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // const resetFilters = () => {
+  //   setFilters({
+  //     courseName: "",
+  //     venue: "",
+  //     startDate: "",
+  //     endDate: "",
+  //     recipientType: "",
+  //   });
+  //   setFilteredSchedules(schedules);
+  // };
+  const resetFilters = () => {
+    setFilters({
+      courseName: "",
+      venue: "",
+      startDate: "",
+      endDate: "",
+      recipientType: "",
+    });
+    fetchSchedules();
+  };
 
   const handleEdit = (schedule) => {
     setSelectedScheduleId(schedule.id);
@@ -213,6 +334,102 @@ const ScheduleTable = () => {
           Download PDF
         </button>
       </div>
+      <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* Course Name Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Search by Course
+            </label>
+            <input
+              type="text"
+              name="courseName"
+              value={filters.courseName}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Enter course name"
+            />
+          </div>
+
+          {/* Venue Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Search by Venue
+            </label>
+            <input
+              type="text"
+              name="venue"
+              value={filters.venue}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Enter venue"
+            />
+          </div>
+
+          {/* Recipient Type Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Recipient Type
+            </label>
+            <select
+              name="recipientType"
+              value={filters.recipientType}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="">All Types</option>
+              <option value="student">Students</option>
+              <option value="teacher">Teachers</option>
+              <option value="all">All</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* Start Date Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              From Date
+            </label>
+            <input
+              type="date"
+              name="startDate"
+              value={filters.startDate}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+
+          {/* End Date Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              To Date
+            </label>
+            <input
+              type="date"
+              name="endDate"
+              value={filters.endDate}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+            />
+          </div>
+        </div>
+
+        <div className="flex space-x-2">
+          <button
+            onClick={applyFilters}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+          >
+            Apply Filters
+          </button>
+          <button
+            onClick={resetFilters}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+          >
+            Reset Filters
+          </button>
+        </div>
+      </div>
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-gray-200 text-gray-700 text-sm uppercase tracking-wider">
@@ -225,7 +442,7 @@ const ScheduleTable = () => {
           </tr>
         </thead>
         <tbody>
-          {schedules.map((schedule) => (
+          {filteredSchedules.map((schedule) => (
             <tr
               key={schedule.id}
               className="border-b hover:bg-gray-50 transition"
