@@ -23,7 +23,7 @@ const RegisterForm = () => {
     const validFormat = /^0\d*$/.test(phone);
     
     // Check if length is maximum 10 digits
-    const validLength = phone.length <= 10;
+    const validLength = phone.length <= 10;      
     
     // Check if it starts with 0
     const startsWithZero = phone.startsWith('0');
