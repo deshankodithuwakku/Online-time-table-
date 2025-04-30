@@ -310,6 +310,7 @@ export const getAllTeachers = async (req, res) => {
             { width: colWidths[3] - cellPadding * 2 }
           );
 
+          
           // Status
           doc.text(
             teacher.status.toUpperCase(),
