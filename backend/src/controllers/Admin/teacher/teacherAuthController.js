@@ -302,6 +302,7 @@ export const getAllTeachers = async (req, res) => {
             { width: colWidths[2] - cellPadding * 2, ellipsis: true }
           );
 
+          
           // Contact
           doc.text(
             teacher.contactNumber || "N/A",
@@ -310,7 +311,7 @@ export const getAllTeachers = async (req, res) => {
             { width: colWidths[3] - cellPadding * 2 }
           );
 
-          
+
           // Status
           doc.text(
             teacher.status.toUpperCase(),
