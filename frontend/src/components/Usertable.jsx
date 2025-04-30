@@ -48,33 +48,6 @@ const UsersTable = () => {
     navigate(`/userprofile/${userId}`); // Navigate to the user profile page
   };
 
-  // useEffect(() => {
-  //   const fetchUsers = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         "http://localhost:8080/api/admin/getallusers",
-  //         {
-  //           credentials: "include",
-  //         }
-  //       );
-  //       const data = await response.json();
-  //       if (response.status === 401) {
-  //         window.location.href = "/login";
-  //         return;
-  //       }
-  //       setUsers(data.users);
-  //       toast.success(data.message);
-  //     } catch (error) {
-  //       setError(error.message);
-  //       toast.error(error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchUsers();
-  // }, []);
-
   const fetchUsers = async (filterParams = {}) => {
     try {
       setLoading(true);
@@ -502,27 +475,41 @@ const UsersTable = () => {
   console.log(users);
   return (
     <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto h-180">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold text-gray-800">Users List</h2>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-lg shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Users List</h2>
+            <p className="text-sm text-gray-500">Manage all registered students</p>
+          </div>
+        </div>
         <div className="flex space-x-2">
           <button
             onClick={handleDownloadPdf}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition flex items-center"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
             Download PDF
           </button>
           <button
             onClick={() => setShowAddStudentModal(true)}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition flex items-center"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
             Add Student
           </button>
         </div>
       </div>
-      {/* Filter Section */}
       <div className="mb-6 bg-gray-50 p-4 rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {/* First Name Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               First Name
@@ -536,8 +523,6 @@ const UsersTable = () => {
               placeholder="Search by first name"
             />
           </div>
-
-          {/* Last Name Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Last Name
@@ -551,8 +536,6 @@ const UsersTable = () => {
               placeholder="Search by last name"
             />
           </div>
-
-          {/* Email Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
@@ -567,9 +550,7 @@ const UsersTable = () => {
             />
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {/* Contact Number Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Contact Number
@@ -583,25 +564,7 @@ const UsersTable = () => {
               placeholder="Search by contact"
             />
           </div>
-
-          {/* Status Filter */}
-          {/* <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border rounded"
-            >
-              <option value="">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div> */}
         </div>
-
         <div className="flex space-x-2">
           <button
             onClick={applyFilters}
@@ -861,7 +824,6 @@ const UsersTable = () => {
             <h3 className="text-lg font-semibold mb-4">Add New Student</h3>
             <form onSubmit={handleAddStudentSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                {/* Left Column */}
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -881,7 +843,6 @@ const UsersTable = () => {
                       </p>
                     )}
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Last Name
@@ -900,7 +861,6 @@ const UsersTable = () => {
                       </p>
                     )}
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Email
@@ -920,8 +880,6 @@ const UsersTable = () => {
                     )}
                   </div>
                 </div>
-
-                {/* Right Column */}
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -941,7 +899,6 @@ const UsersTable = () => {
                       </p>
                     )}
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Gender
@@ -957,7 +914,6 @@ const UsersTable = () => {
                       <option value="other">Other</option>
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
                       Contact Number
@@ -978,8 +934,6 @@ const UsersTable = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Avatar Upload - Full width below the columns */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">
                   Avatar
@@ -1044,7 +998,6 @@ const UsersTable = () => {
                   </p>
                 )}
               </div>
-
               <div className="flex justify-end">
                 <button
                   type="button"
