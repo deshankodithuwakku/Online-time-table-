@@ -10,7 +10,7 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
+      
   useEffect(() => {
     // Get email from query parameters in the URL
     const queryParams = new URLSearchParams(location.search);
