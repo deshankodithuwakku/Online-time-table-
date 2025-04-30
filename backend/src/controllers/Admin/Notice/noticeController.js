@@ -66,7 +66,7 @@ export const getNotices = async (req, res) => {
     }
 
     if (recipientType) {
-      where.recipientType = recipientType;
+      where.recipientType = recipientType ;
     }
 
     if (startDate || endDate) {
