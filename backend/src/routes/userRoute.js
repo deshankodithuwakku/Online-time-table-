@@ -18,4 +18,5 @@ router.post("/resendotp", resendOTP);
 router.post("/validateotp", validateOTP);
 router.post("/resetpassword", resetPassword);
 
+
 export default router;

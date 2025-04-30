@@ -43,6 +43,7 @@ export const userActivityReprot = async (req, res) => {
   await generatePDFReport(activities, filePath, "User Activity Re port");
 };
 
+
 export const getAllUserActivities = async (req, res) => {
   try {
     const { userId, startDate, endDate, download } = req.query;

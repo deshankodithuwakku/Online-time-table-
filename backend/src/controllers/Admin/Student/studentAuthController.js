@@ -388,6 +388,7 @@ export const getAllStudents = async (req, res) => {
   }
 };
 
+
 export const getSingleStudents = async (req, res) => {
   const { id } = req.params;
   console.log(id);
@@ -416,3 +417,4 @@ export const getSingleStudents = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
+

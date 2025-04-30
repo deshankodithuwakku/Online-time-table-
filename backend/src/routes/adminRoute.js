@@ -67,6 +67,7 @@ const router = express.Router();
 // router.use(authMiddleware);
 // router.use(verifyToken);
 
+
 //Route For User Authentication and User Management
 router.post(
   "/adduser",
