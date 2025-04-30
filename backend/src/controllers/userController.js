@@ -17,6 +17,7 @@ export const registerUser = async (req, res) => {
 
     //  const otp = Math.floor(100000 + Math.random() * 900000);
     //  const now = new Date();
+    
     //  const otp_expire = new Date(now.getTime() + 3 * 60000);
 
     const newUser = await prisma.user.create({
