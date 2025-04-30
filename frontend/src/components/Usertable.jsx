@@ -48,33 +48,6 @@ const UsersTable = () => {
     navigate(`/userprofile/${userId}`); // Navigate to the user profile page
   };
 
-  // useEffect(() => {
-  //   const fetchUsers = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         "http://localhost:8080/api/admin/getallusers",
-  //         {
-  //           credentials: "include",
-  //         }
-  //       );
-  //       const data = await response.json();
-  //       if (response.status === 401) {
-  //         window.location.href = "/login";
-  //         return;
-  //       }
-  //       setUsers(data.users);
-  //       toast.success(data.message);
-  //     } catch (error) {
-  //       setError(error.message);
-  //       toast.error(error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchUsers();
-  // }, []);
-
   const fetchUsers = async (filterParams = {}) => {
     try {
       setLoading(true);
@@ -502,8 +475,18 @@ const UsersTable = () => {
   console.log(users);
   return (
     <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto h-180">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold text-gray-800">Users List</h2>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-lg shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Users List</h2>
+            <p className="text-sm text-gray-500">Manage all registered students</p>
+          </div>
+        </div>
         <div className="flex space-x-2">
           <button
             onClick={handleDownloadPdf}
