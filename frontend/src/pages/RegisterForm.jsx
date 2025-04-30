@@ -10,13 +10,13 @@ const RegisterForm = () => {
     password: "",
     confirmPassword: "",
     gender: "",
-    contactNumber: "",
+    contactNumber: "",                
     avatar: null,
   });
   const [errors, setErrors] = useState({});
   const [preview, setPreview] = useState(null);
   const navigate = useNavigate(); // Initialize navigate function
-     
+       
   // Add phone validation function
   const validatePhoneNumber = (phone) => {
     // Check if the phone starts with 0 and contains only digits
