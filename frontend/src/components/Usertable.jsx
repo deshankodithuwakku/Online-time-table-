@@ -10,6 +10,14 @@ const UsersTable = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [verifyUserModal, setVerifyUserModal] = useState(false);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [filters, setFilters] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    status: "",
+    contactNumber: "",
+  });
   const [editFormData, setEditFormData] = useState({
     firstName: "",
     lastName: "",
@@ -27,12 +35,6 @@ const UsersTable = () => {
     contactNumber: "",
     avatarFile: null,
   });
-  // Add new state variables for search and filters
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    status: ''
-  });
-  // Removed pdfLoading state variable
   const [addStudentFormErrors, setAddStudentFormErrors] = useState({
     firstName: "",
     lastName: "",
@@ -46,32 +48,143 @@ const UsersTable = () => {
     navigate(`/userprofile/${userId}`); // Navigate to the user profile page
   };
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:8080/api/admin/getallusers",
-          {
-            credentials: "include",
-          }
-        );
-        const data = await response.json();
-        if (response.status === 401) {
-          window.location.href = "/login";
-          return;
-        }
-        setUsers(data.users);
-        toast.success(data.message);
-      } catch (error) {
-        setError(error.message);
-        toast.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUsers = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         "http://localhost:8080/api/admin/getallusers",
+  //         {
+  //           credentials: "include",
+  //         }
+  //       );
+  //       const data = await response.json();
+  //       if (response.status === 401) {
+  //         window.location.href = "/login";
+  //         return;
+  //       }
+  //       setUsers(data.users);
+  //       toast.success(data.message);
+  //     } catch (error) {
+  //       setError(error.message);
+  //       toast.error(error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
+  //   fetchUsers();
+  // }, []);
+
+  const fetchUsers = async (filterParams = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const query = new URLSearchParams();
+      for (const [key, value] of Object.entries(filterParams)) {
+        if (value) query.append(key, value);
+      }
+
+      const response = await fetch(
+        `http://localhost:8080/api/admin/getallusers?${query.toString()}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      setUsers(data.users || []);
+      setFilteredUsers(data.users || []);
+
+      if (data.users && data.users.length === 0) {
+        toast.info("No users found matching your criteria");
+      }
+    } catch (error) {
+      setError(error.message);
+      toast.error(error.message || "Error fetching users");
+      // On error, reset to show all users
+      fetchUsers(); // Fetch all users without filters
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
   }, []);
+
+  const applyFilters = () => {
+    const hasFilters = Object.values(filters).some((val) => val !== "");
+
+    if (hasFilters) {
+      fetchUsers(filters);
+    } else {
+      fetchUsers();
+    }
+  };
+
+  // Reset filters function
+  const resetFilters = () => {
+    setFilters({
+      firstName: "",
+      lastName: "",
+      email: "",
+      status: "",
+      contactNumber: "",
+    });
+    fetchUsers();
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // PDF Download function
+  const handleDownloadPdf = async () => {
+    try {
+      const query = new URLSearchParams();
+      for (const [key, value] of Object.entries(filters)) {
+        if (value) query.append(key, value);
+      }
+
+      const response = await fetch(
+        `http://localhost:8080/api/admin/getallusers?${query.toString()}&download=pdf`,
+        { credentials: "include" }
+      );
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Create temporary link to trigger download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "users.pdf";
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      toast.error(`Failed to download PDF: ${err.message}`);
+    }
+  };
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,22 +192,8 @@ const UsersTable = () => {
   };
 
   const validatePhone = (phone) => {
-    // Sri Lankan phone number validation
-    // Format: 0XX XXXXXXX where the total length is 10 digits
-    // Mobile numbers typically start with 07X
-    const re = /^0[1-9][0-9]{8}$/;
+    const re = /^[0-9]{10,15}$/;
     return re.test(phone);
-  };
-
-  // Add a handler to allow only numeric input for phone numbers
-  const handleNumericInput = (e) => {
-    // Allow only: numbers, backspace, tab, delete, arrows, home, end
-    const allowedKeys = ['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
-    
-    // If the key is not a number and not in allowed special keys, prevent default behavior
-    if (!/^\d$/.test(e.key) && !allowedKeys.includes(e.key)) {
-      e.preventDefault();
-    }
   };
 
   const validatePassword = (password) => {
@@ -143,7 +242,7 @@ const UsersTable = () => {
       valid = false;
     } else if (!validatePhone(addStudentFormData.contactNumber)) {
       newErrors.contactNumber =
-        "Please enter a valid Sri Lankan phone number (10 digits starting with 0)";
+        "Please enter a valid phone number (10-15 digits)";
       valid = false;
     }
 
@@ -157,97 +256,6 @@ const UsersTable = () => {
       ...prevData,
       [name]: value,
     }));
-    
-    // Real-time validation
-    switch (name) {
-      case "firstName":
-        if (!value.trim()) {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            firstName: "First name is required"
-          }));
-        } else {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            firstName: ""
-          }));
-        }
-        break;
-      
-      case "lastName":
-        if (!value.trim()) {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            lastName: "Last name is required"
-          }));
-        } else {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            lastName: ""
-          }));
-        }
-        break;
-      
-      case "email":
-        if (!value) {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            email: "Email is required"
-          }));
-        } else if (!validateEmail(value)) {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            email: "Please enter a valid email"
-          }));
-        } else {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            email: ""
-          }));
-        }
-        break;
-      
-      case "password":
-        if (!value) {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            password: "Password is required"
-          }));
-        } else if (!validatePassword(value)) {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            password: "Password must be at least 8 characters"
-          }));
-        } else {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            password: ""
-          }));
-        }
-        break;
-      
-      case "contactNumber":
-        if (!value) {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            contactNumber: "Contact number is required"
-          }));
-        } else if (!validatePhone(value)) {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            contactNumber: "Please enter a valid Sri Lankan phone number (10 digits starting with 0)"
-          }));
-        } else {
-          setAddStudentFormErrors(prev => ({
-            ...prev,
-            contactNumber: ""
-          }));
-        }
-        break;
-      
-      default:
-        break;
-    }
   };
 
   const handleAddStudentSubmit = async (e) => {
@@ -489,49 +497,20 @@ const UsersTable = () => {
     setVerifyUserModal(false);
   };
 
-  // Add handler for search input
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  // Add handler for filter changes
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Filter users based on search term and filters
-  const filteredUsers = users.filter(user => {
-    let matchesSearch = true;
-    let matchesStatus = true;
-
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      matchesSearch = 
-        user.firstName.toLowerCase().includes(searchLower) || 
-        user.lastName.toLowerCase().includes(searchLower) || 
-        user.email.toLowerCase().includes(searchLower);
-    }
-
-    if (filters.status) {
-      matchesStatus = user.status === filters.status;
-    }
-
-    return matchesSearch && matchesStatus;
-  });
-
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
   console.log(users);
   return (
-    <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto">
+    <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto h-180">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-gray-800">Users List</h2>
         <div className="flex space-x-2">
-          {/* Removed PDF download button */}
+          <button
+            onClick={handleDownloadPdf}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+          >
+            Download PDF
+          </button>
           <button
             onClick={() => setShowAddStudentModal(true)}
             className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
@@ -540,39 +519,104 @@ const UsersTable = () => {
           </button>
         </div>
       </div>
+      {/* Filter Section */}
+      <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* First Name Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              First Name
+            </label>
+            <input
+              type="text"
+              name="firstName"
+              value={filters.firstName}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Search by first name"
+            />
+          </div>
 
-      {/* Search and Filter Section */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Search
-          </label>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            placeholder="Search by name or email..."
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          {/* Last Name Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Last Name
+            </label>
+            <input
+              type="text"
+              name="lastName"
+              value={filters.lastName}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Search by last name"
+            />
+          </div>
+
+          {/* Email Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="text"
+              name="email"
+              value={filters.email}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Search by email"
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status
-          </label>
-          <select
-            name="status"
-            value={filters.status}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* Contact Number Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contact Number
+            </label>
+            <input
+              type="text"
+              name="contactNumber"
+              value={filters.contactNumber}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Search by contact"
+            />
+          </div>
+
+          {/* Status Filter */}
+          {/* <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div> */}
+        </div>
+
+        <div className="flex space-x-2">
+          <button
+            onClick={applyFilters}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="deactive">Deactive</option>
-          </select>
+            Apply Filters
+          </button>
+          <button
+            onClick={resetFilters}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+          >
+            Reset Filters
+          </button>
         </div>
       </div>
-
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-gray-200 text-gray-700 text-sm uppercase tracking-wider">
@@ -599,7 +643,7 @@ const UsersTable = () => {
               </td>
               <td className="px-4 py-3">
                 <img
-                  src={`http://localhost:8080/${user.avatar}`}
+                  src={`http://localhost:8080${user.avatar}`}
                   alt="Avatar"
                   className="w-10 h-10 rounded-full border"
                 />
@@ -653,13 +697,6 @@ const UsersTable = () => {
           ))}
         </tbody>
       </table>
-      
-      {filteredUsers.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">No users found matching your search criteria.</p>
-        </div>
-      )}
-
       {/* Edit User Modal */}
       {showEditModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-opacity-20 backdrop-blur-lg z-50">
@@ -712,14 +749,11 @@ const UsersTable = () => {
                   Contact Number
                 </label>
                 <input
-                  type="tel"
+                  type="text"
                   name="contactNumber"
                   value={editFormData.contactNumber}
                   onChange={handleEditChange}
-                  onKeyDown={handleNumericInput}
-                  placeholder="07XXXXXXXX"
                   className="w-full px-3 py-2 border rounded"
-                  maxLength={10}
                   required
                 />
               </div>
@@ -929,14 +963,11 @@ const UsersTable = () => {
                       Contact Number
                     </label>
                     <input
-                      type="tel"
+                      type="text"
                       name="contactNumber"
                       value={addStudentFormData.contactNumber}
                       onChange={handleAddStudentChange}
-                      onKeyDown={handleNumericInput}
-                      placeholder="07XXXXXXXX"
                       className="w-full px-3 py-2 border rounded"
-                      maxLength={10}
                       required
                     />
                     {addStudentFormErrors.contactNumber && (

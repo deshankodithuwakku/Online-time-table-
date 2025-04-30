@@ -4,6 +4,8 @@ import cors from "cors";
 import userRoute from "./src/routes/userRoute.js";
 import adminRoute from "./src/routes/adminRoute.js";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 const app = express();
@@ -15,6 +17,11 @@ const corsOptions = {
   credentials: true, // Required for cookies
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(express.json());
 app.use(cors(corsOptions));
