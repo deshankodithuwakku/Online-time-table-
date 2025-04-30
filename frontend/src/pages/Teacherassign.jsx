@@ -14,7 +14,7 @@ const AssignScheduleForm = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
+                  
   const handleTeacherChange = (e) => {
     const { options } = e.target;
     const selectedTeachers = [];
