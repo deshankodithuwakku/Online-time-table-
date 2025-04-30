@@ -353,6 +353,7 @@ export const getAllTeachers = async (req, res) => {
   }
 };
 
+
 export const getSingleTeacher = async (req, res) => {
   const { id } = req.params;
 
