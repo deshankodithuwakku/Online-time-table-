@@ -51,7 +51,7 @@ const ScheduleForm = () => {
           "http://localhost:8080/api/admin/getallteachers",
           {
             credentials: "include",
-          }
+          } 
         );
         const teachersData = await teachersResponse.json();
         if (teachersResponse.status === 401) {

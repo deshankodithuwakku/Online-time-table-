@@ -15,7 +15,7 @@ const ScheduleDetailsPage = () => {
     startTime: "",
     endTime: "",
     venue: "",
-    duration: 0,
+    duration: 0,                      
     description: "",
     recipientType: "all",
   });
