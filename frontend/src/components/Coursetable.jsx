@@ -5,15 +5,23 @@ import { useNavigate } from "react-router-dom";
 const CoursesTable = () => {
   const [courses, setCourses] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]); // For filtered results
+  const [searchQuery, setSearchQuery] = useState(""); // Search query state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [newCourse, setNewCourse] = useState({
     name: "",
     description: "",
     teacherIds: [],
+  });
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    description: "",
   });
   const [errors, setErrors] = useState({
     name: "",
@@ -51,6 +59,7 @@ const CoursesTable = () => {
 
       if (coursesResponse.ok && teachersResponse.ok) {
         setCourses(coursesData.data);
+        setFilteredCourses(coursesData.data); // Initialize filtered courses
         setTeachers(teachersData.data || []);
       } else {
         throw new Error(
@@ -69,6 +78,18 @@ const CoursesTable = () => {
     fetchData();
   }, []);
 
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+    setFilteredCourses(
+      courses.filter(
+        (course) =>
+          course.name.toLowerCase().includes(query) ||
+          course.description.toLowerCase().includes(query)
+      )
+    );
+  };
+
   const handleDeleteClick = (courseId) => {
     setSelectedCourseId(courseId);
     setShowDeleteModal(true);
@@ -76,6 +97,15 @@ const CoursesTable = () => {
 
   const handleAddCourse = () => {
     setShowAddModal(true);
+  };
+
+  const handleEditClick = (course) => {
+    setSelectedCourse(course);
+    setEditFormData({
+      name: course.name,
+      description: course.description,
+    });
+    setShowEditModal(true);
   };
 
   const handleTeacherSelect = (teacherId) => {
@@ -100,6 +130,11 @@ const CoursesTable = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
@@ -152,6 +187,7 @@ const CoursesTable = () => {
 
       if (data.course) {
         setCourses([...courses, data.course]);
+        setFilteredCourses([...courses, data.course]); // Update filtered courses
       }
       toast.success(data.message);
       setNewCourse({
@@ -196,6 +232,9 @@ const CoursesTable = () => {
         throw new Error(data.message || "Failed to delete course");
 
       setCourses(courses.filter((course) => course.id !== selectedCourseId));
+      setFilteredCourses(
+        courses.filter((course) => course.id !== selectedCourseId)
+      ); // Update filtered courses
       toast.success(data.message);
     } catch (error) {
       toast.error(error.message || "Something went wrong");
@@ -210,6 +249,71 @@ const CoursesTable = () => {
     setSelectedCourseId(null);
   };
 
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/admin/updatecourse/${selectedCourse.id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(editFormData),
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("Course updated successfully");
+        setCourses((prev) =>
+          prev.map((course) =>
+            course.id === selectedCourse.id
+              ? { ...course, ...editFormData }
+              : course
+          )
+        );
+        setFilteredCourses((prev) =>
+          prev.map((course) =>
+            course.id === selectedCourse.id
+              ? { ...course, ...editFormData }
+              : course
+          )
+        ); // Update filtered courses
+        setShowEditModal(false);
+      } else {
+        throw new Error(data.message || "Failed to update course");
+      }
+    } catch (error) {
+      toast.error(error.message || "Something went wrong");
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8080/api/admin/courses/report",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to generate report");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "courses_report.pdf";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error(error.message || "Something went wrong");
+    }
+  };
+
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
@@ -217,12 +321,27 @@ const CoursesTable = () => {
     <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-gray-800">Courses List</h2>
-        <button
-          onClick={handleAddCourse}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-        >
-          Add Course
-        </button>
+        <div className="flex space-x-3">
+          <input
+            type="text"
+            placeholder="Search courses..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="px-4 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+          />
+          <button
+            onClick={handleAddCourse}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+          >
+            Add Course
+          </button>
+          <button
+            onClick={handleGenerateReport}
+            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
+          >
+            Generate Report
+          </button>
+        </div>
       </div>
 
       <table className="w-full text-left border-collapse">
@@ -235,7 +354,7 @@ const CoursesTable = () => {
           </tr>
         </thead>
         <tbody>
-          {courses.map((course) => (
+          {filteredCourses.map((course) => (
             <tr
               key={course.id}
               className="border-b hover:bg-gray-50 transition"
@@ -249,6 +368,12 @@ const CoursesTable = () => {
               <td className="px-4 py-3 font-medium">{course.name}</td>
               <td className="px-4 py-3 text-gray-600">{course.description}</td>
               <td className="px-4 py-3">
+                <button
+                  onClick={() => handleEditClick(course)}
+                  className="px-2 py-1 text-xs font-semibold bg-yellow-500 text-white rounded hover:bg-yellow-600 transition mr-2"
+                >
+                  Edit
+                </button>
                 <button
                   onClick={() => handleDeleteClick(course.id)}
                   className="px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded hover:bg-red-600 transition"
@@ -353,6 +478,58 @@ const CoursesTable = () => {
                 Add Course
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Course Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-opacity-20 backdrop-blur-lg z-50">
+          <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Edit Course</h3>
+            <form onSubmit={handleEditSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Course Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editFormData.name}
+                    onChange={handleEditChange}
+                    className="w-full px-3 py-2 border rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={editFormData.description}
+                    onChange={handleEditChange}
+                    className="w-full px-3 py-2 border rounded"
+                    rows="3"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 mr-2 text-sm text-gray-700 bg-gray-200 rounded hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 transition"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

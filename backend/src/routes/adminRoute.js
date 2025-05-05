@@ -36,9 +36,11 @@ import {
 } from "../controllers/Admin/Notifications/notificationConroller.js";
 import getCourse, {
   addCourse,
+  updateCourse,
   // assignTeacher,
   deleteCourse,
   getAllCourses,
+  generateCourseReport,
 } from "../controllers/Admin/Course/courseController.js";
 import {
   getAllUserActivities,
@@ -143,8 +145,10 @@ router.get("/getnotice", getSingleNotice);
 //Route For Course Authentication and Course Management
 router.post("/addcourse", verifyToken(["admin"]), addCourse);
 router.post("/deletecourse", verifyToken(["admin"]), deleteCourse);
+router.post("/updatecourse/:id", verifyToken(["admin"]), updateCourse);
 router.get("/allcourses", verifyToken(["admin", "teacher"]), getAllCourses);
 router.post("/getcoursedetails", verifyToken(["admin"]), getCourse);
+router.get("/courses/report", verifyToken(["admin"]), generateCourseReport);
 // router.post("/assignteacher", assignTeacher);
 
 //Route For Reports Management
