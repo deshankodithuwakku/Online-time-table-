@@ -83,17 +83,12 @@ const ScheduleTable = () => {
       if (response.ok) {
         setSchedules(data.data || []);
         setFilteredSchedules(data.data || []);
-        if (data.data && data.data.length === 0) {
-          toast.info("No schedules found matching your criteria");
-        }
       } else {
         throw new Error(data.message || "Failed to fetch schedules");
       }
     } catch (error) {
       setError(error.message);
       toast.error(error.message || "Error fetching schedules");
-      // On error, reset to show all schedules
-      fetchSchedules(); // Fetch all schedules without filters
     } finally {
       setLoading(false);
     }
@@ -101,43 +96,7 @@ const ScheduleTable = () => {
   useEffect(() => {
     fetchSchedules();
   }, []);
-  // const applyFilters = () => {
-  //   let result = [...schedules];
 
-  //   if (filters.courseName) {
-  //     result = result.filter((schedule) =>
-  //       schedule.course?.name
-  //         ?.toLowerCase()
-  //         .includes(filters.courseName.toLowerCase())
-  //     );
-  //   }
-
-  //   if (filters.venue) {
-  //     result = result.filter((schedule) =>
-  //       schedule.venue.toLowerCase().includes(filters.venue.toLowerCase())
-  //     );
-  //   }
-
-  //   if (filters.startDate) {
-  //     result = result.filter(
-  //       (schedule) => new Date(schedule.date) >= new Date(filters.startDate)
-  //     );
-  //   }
-
-  //   if (filters.endDate) {
-  //     result = result.filter(
-  //       (schedule) => new Date(schedule.date) <= new Date(filters.endDate)
-  //     );
-  //   }
-
-  //   if (filters.recipientType) {
-  //     result = result.filter(
-  //       (schedule) => schedule.recipientType === filters.recipientType
-  //     );
-  //   }
-
-  //   setFilteredSchedules(result);
-  // };
   const applyFilters = () => {
     const hasFilters = Object.values(filters).some((val) => val !== "");
 
@@ -155,16 +114,6 @@ const ScheduleTable = () => {
     }));
   };
 
-  // const resetFilters = () => {
-  //   setFilters({
-  //     courseName: "",
-  //     venue: "",
-  //     startDate: "",
-  //     endDate: "",
-  //     recipientType: "",
-  //   });
-  //   setFilteredSchedules(schedules);
-  // };
   const resetFilters = () => {
     setFilters({
       courseName: "",
@@ -319,7 +268,6 @@ const ScheduleTable = () => {
   };
 
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
-  if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
   return (
     <div className="p-6 bg-white shadow-md rounded-xl overflow-x-auto">
