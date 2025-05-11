@@ -194,7 +194,8 @@ const NotificationsTable = () => {
         recipientType: "all",
       });
       setShowAddModal(false);
-      fetchNotifications();
+      // Refresh notifications
+      await fetchNotifications();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     }
@@ -225,7 +226,8 @@ const NotificationsTable = () => {
         throw new Error(data.message || "Failed to delete notification");
 
       toast.success("Notification deleted successfully");
-      fetchNotifications();
+      // Refresh notifications
+      await fetchNotifications();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
@@ -279,7 +281,8 @@ const NotificationsTable = () => {
 
       toast.success("Notification updated successfully");
       setShowUpdateModal(false);
-      fetchNotifications();
+      // Refresh notifications
+      await fetchNotifications();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     }

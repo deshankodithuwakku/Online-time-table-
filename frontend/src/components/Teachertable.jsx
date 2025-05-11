@@ -50,61 +50,32 @@ const TeachersTable = () => {
     navigate(`/teacherprofile/${userId}`);
   };
 
-  // useEffect(() => {
-  //   const fetchTeachers = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         "http://localhost:8080/api/admin/getallteachers",
-  //         {
-  //           credentials: "include",
-  //         }
-  //       );
-  //       const data = await response.json();
-  //       if (response.status === 401) {
-  //         window.location.href = "/login";
-  //         return;
-  //       }
+  const fetchTeachers = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8080/api/admin/getallteachers",
+        {
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
 
-  //       console.log(data);
-  //       setTeachers(data.data);
-  //       toast.success(data.message);
-  //     } catch (error) {
-  //       setError(error.message);
-  //       toast.error("Error fetching teachers");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchTeachers();
-  // }, []);
+      setTeachers(data.data);
+      setFilteredTeachers(data.data);
+      toast.success(data.message);
+    } catch (error) {
+      setError(error.message);
+      toast.error("Error fetching teachers");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:8080/api/admin/getallteachers",
-          {
-            credentials: "include",
-          }
-        );
-        const data = await response.json();
-        if (response.status === 401) {
-          window.location.href = "/login";
-          return;
-        }
-
-        setTeachers(data.data);
-        setFilteredTeachers(data.data);
-        toast.success(data.message);
-      } catch (error) {
-        setError(error.message);
-        toast.error("Error fetching teachers");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTeachers();
   }, []);
 
@@ -232,10 +203,9 @@ const TeachersTable = () => {
       if (!response.ok)
         throw new Error(data.message || "Failed to delete teacher");
 
-      setTeachers(
-        teachers.filter((teacher) => teacher.id !== selectedTeacherId)
-      );
       toast.success(data.message);
+      // Refresh teachers list
+      await fetchTeachers();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
@@ -299,14 +269,9 @@ const TeachersTable = () => {
       if (!response.ok)
         throw new Error(data.message || "Failed to update teacher");
 
-      setTeachers((prevTeachers) =>
-        prevTeachers.map((teacher) =>
-          teacher.id === selectedTeacherId
-            ? { ...teacher, ...editFormData }
-            : teacher
-        )
-      );
       toast.success(data.message);
+      // Refresh teachers list
+      await fetchTeachers();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
@@ -333,20 +298,12 @@ const TeachersTable = () => {
       );
 
       const data = await response.json();
-      setTeachers((prevTeachers) =>
-        prevTeachers.map((teacher) =>
-          teacher.id === selectedVerifyId
-            ? { ...teacher, status: "active" }
-            : teacher
-        )
-      );
-
       toast.success(data.message);
+      // Refresh teachers list
+      await fetchTeachers();
+      setShowVerifyModal(false);
     } catch (error) {
       toast.error(error.message || "Something went wrong");
-    } finally {
-      setShowVerifyModal(false);
-      setSelectedVerifyId(null);
     }
   };
 
@@ -400,8 +357,6 @@ const TeachersTable = () => {
           method: "POST",
           body: formData,
           credentials: "include",
-          // Note: Don't set Content-Type header when using FormData
-          // The browser will set it automatically with the correct boundary
         }
       );
 
@@ -413,17 +368,9 @@ const TeachersTable = () => {
       if (!response.ok)
         throw new Error(data.message || "Failed to add teacher");
 
-      // Refresh the teachers list
-      const teachersResponse = await fetch(
-        "http://localhost:8080/api/admin/getallteachers",
-        {
-          credentials: "include",
-        }
-      );
-      const teachersData = await teachersResponse.json();
-      setTeachers(teachersData.data);
-
       toast.success(data.message);
+      // Refresh teachers list
+      await fetchTeachers();
       setShowAddModal(false);
       resetAddForm();
     } catch (error) {
@@ -600,7 +547,7 @@ const TeachersTable = () => {
         <thead>
           <tr className="bg-gray-200 text-gray-700 text-sm uppercase tracking-wider">
             <th className="px-4 py-3">ID</th>
-            {/* <th className="px-4 py-3">Avatar</th> */}
+            <th className="px-4 py-3">Avatar</th>
             <th className="px-4 py-3">Name</th>
             <th className="px-4 py-3">Contact</th>
             <th className="px-4 py-3">Status</th>
@@ -619,13 +566,13 @@ const TeachersTable = () => {
               >
                 {teacher.id}
               </td>
-              {/* <td className="px-4 py-3">
+              <td className="px-4 py-3">
                 <img
                   src={`http://localhost:8080${teacher.avatar}`}
                   alt="Avatar"
                   className="w-10 h-10 rounded-full border"
                 />
-              </td> */}
+              </td>
               <td className="px-4 py-3">
                 {teacher.firstName} {teacher.lastName}
               </td>

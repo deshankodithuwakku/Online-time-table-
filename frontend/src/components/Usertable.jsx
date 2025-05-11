@@ -48,33 +48,6 @@ const UsersTable = () => {
     navigate(`/userprofile/${userId}`); // Navigate to the user profile page
   };
 
-  // useEffect(() => {
-  //   const fetchUsers = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         "http://localhost:8080/api/admin/getallusers",
-  //         {
-  //           credentials: "include",
-  //         }
-  //       );
-  //       const data = await response.json();
-  //       if (response.status === 401) {
-  //         window.location.href = "/login";
-  //         return;
-  //       }
-  //       setUsers(data.users);
-  //       toast.success(data.message);
-  //     } catch (error) {
-  //       setError(error.message);
-  //       toast.error(error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchUsers();
-  // }, []);
-
   const fetchUsers = async (filterParams = {}) => {
     try {
       setLoading(true);
@@ -290,21 +263,9 @@ const UsersTable = () => {
         throw new Error(data.message || "Failed to add student");
       }
 
-      const usersResponse = await fetch(
-        "http://localhost:8080/api/admin/getallusers",
-        {
-          credentials: "include",
-        }
-      );
-
-      const usersData = await usersResponse.json();
-      if (response.status === 401) {
-        window.location.href = "/login";
-        return;
-      }
-      setUsers(usersData.users);
-
       toast.success("Student added successfully");
+      // Refresh users list from server
+      await fetchUsers();
       setShowAddStudentModal(false);
       setAddStudentFormData({
         firstName: "",
@@ -362,8 +323,9 @@ const UsersTable = () => {
       if (!response.ok)
         throw new Error(data.message || "Failed to delete user");
 
-      setUsers(users.filter((user) => user.id !== selectedUserId));
       toast.success(data.message);
+      // Refresh users list from server
+      await fetchUsers();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
@@ -409,12 +371,9 @@ const UsersTable = () => {
       if (!response.ok)
         throw new Error(data.message || "Failed to update user");
 
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === selectedUserId ? { ...user, ...editFormData } : user
-        )
-      );
       toast.success(data.message);
+      // Refresh users list from server instead of just updating locally
+      await fetchUsers();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
@@ -430,7 +389,7 @@ const UsersTable = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: selectedUserId, status: "active" }), // Set to "active" or another status
+          body: JSON.stringify({ id: selectedUserId, status: "active" }),
           credentials: "include",
         }
       );
@@ -442,11 +401,9 @@ const UsersTable = () => {
       if (!response.ok)
         throw new Error(data.message || "Failed to verify user");
       toast.success(data.message);
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === selectedUserId ? { ...user, status: "active" } : user
-        )
-      );
+      
+      // Refresh users list from server
+      await fetchUsers();
       setVerifyUserModal(false);
     } catch (error) {
       toast.error(error.message || "Something went wrong");
@@ -482,11 +439,9 @@ const UsersTable = () => {
         throw new Error(data.message || "Failed to unverify user");
 
       toast.success(data.message);
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === selectedUserId ? { ...user, status: "inactive" } : user
-        )
-      );
+      
+      // Refresh users list from server
+      await fetchUsers();
       setVerifyUserModal(false);
     } catch (error) {
       toast.error(error.message || "Something went wrong");

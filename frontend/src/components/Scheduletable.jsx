@@ -33,33 +33,6 @@ const ScheduleTable = () => {
     navigate(`/schuledetails/${scheduleId}`);
   };
 
-  // const fetchSchedules = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       "http://localhost:8080/api/admin/getallschedule",
-  //       {
-  //         credentials: "include",
-  //       }
-  //     );
-  //     const data = await response.json();
-  //     if (response.status === 401) {
-  //       window.location.href = "/login";
-  //       return;
-  //     }
-  //     if (response.ok) {
-  //       setSchedules(data.data);
-  //       setFilteredSchedules(data.data);
-  //     } else {
-  //       throw new Error(data.message || "Failed to fetch schedules");
-  //     }
-  //   } catch (error) {
-  //     setError(error.message);
-  //     toast.error(error.message || "Error fetching schedules");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const fetchSchedules = async (filterParams = {}) => {
     try {
       setLoading(true);
@@ -165,10 +138,9 @@ const ScheduleTable = () => {
         throw new Error(data.message || "Failed to delete schedule");
       }
 
-      setSchedules(
-        schedules.filter((schedule) => schedule.id !== selectedScheduleId)
-      );
       toast.success(data.message || "Schedule deleted successfully");
+      // Refresh schedules list
+      await fetchSchedules();
     } catch (error) {
       toast.error(error.message || "Something went wrong");
     } finally {
@@ -210,25 +182,9 @@ const ScheduleTable = () => {
         throw new Error(data.message || "Failed to update schedule");
       }
 
-      // Update the local state with the new schedule data
-      setSchedules((prevSchedules) =>
-        prevSchedules.map((schedule) =>
-          schedule.id === selectedScheduleId
-            ? {
-                ...schedule,
-                date: editFormData.date,
-                startTime: `${editFormData.date}T${editFormData.startTime}:00Z`,
-                endTime: `${editFormData.date}T${editFormData.endTime}:00Z`,
-                venue: editFormData.venue,
-                duration: parseInt(editFormData.duration),
-                description: editFormData.description,
-                recipientType: editFormData.recipientType,
-              }
-            : schedule
-        )
-      );
-
       toast.success(data.message || "Schedule updated successfully");
+      // Refresh schedules list
+      await fetchSchedules();
       setShowEditModal(false);
     } catch (error) {
       toast.error(error.message || "Something went wrong");

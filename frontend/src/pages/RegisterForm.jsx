@@ -10,7 +10,7 @@ const RegisterForm = () => {
     password: "",
     confirmPassword: "",
     gender: "",
-    contactNumber: "",                
+    contactNumber: "",
     avatar: null,
   });
   const [errors, setErrors] = useState({});

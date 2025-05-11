@@ -11,17 +11,14 @@ export const registerUser = async (req, res) => {
       password,
       gender,
       contactNumber,
-      avatar,
     } = req.body;
+    const avatar = req.file ? `/uploads/${req.file.filename}` : null;
+
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "Email already in use" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    //  const otp = Math.floor(100000 + Math.random() * 900000);
-    //  const now = new Date();
-    //  const otp_expire = new Date(now.getTime() + 3 * 60000);
 
     const newUser = await prisma.user.create({
       data: {
