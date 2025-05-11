@@ -7,7 +7,7 @@ const NotificationProfilePage = () => {
   const [error, setError] = useState(null);
 
   const { id } = useParams();
-
+     
   useEffect(() => {
     const fetchNotificationData = async () => {
       try {

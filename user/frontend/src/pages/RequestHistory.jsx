@@ -242,24 +242,15 @@ const TeacherRequestsView = () => {
                     <FiClock className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
                     <span>Duration: {request.duration} minutes</span>
                   </div>
-                  <div className="flex items-center">
+                  {/* <div className="flex items-center">
                     <FiBook className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
                     <span>Course Code: {request.course?.code || "N/A"}</span>
-                  </div>
-                  <div className="flex items-center">
+                  </div> */}
+                  {/* <div className="flex items-center">
                     <span className="text-gray-500">ID: {request.id}</span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
-
-              {/* Actions */}
-              {request.status === "pending" && (
-                <div className="bg-gray-50 px-6 py-3 flex justify-end space-x-3 border-t border-gray-200">
-                  <button className="px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md">
-                    Cancel Request
-                  </button>
-                </div>
-              )}
             </div>
           ))}
         </div>

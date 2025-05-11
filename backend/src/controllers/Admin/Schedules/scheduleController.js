@@ -398,7 +398,7 @@ export const getAllSchedules = async (req, res) => {
     });
 
     if (!schedules.length) {
-      return res.status(404).json({
+      return res.status(200).json({
         message: "No schedules found matching your criteria",
       });
     }
@@ -565,6 +565,7 @@ export const getAllSchedules = async (req, res) => {
     }
   }
 };
+
 export const getSingleSchedule = async (req, res) => {
   try {
     const { id } = req.params;

@@ -17,7 +17,6 @@ export const registerUser = async (req, res) => {
 
     //  const otp = Math.floor(100000 + Math.random() * 900000);
     //  const now = new Date();
-    
     //  const otp_expire = new Date(now.getTime() + 3 * 60000);
 
     const newUser = await prisma.user.create({
@@ -80,7 +79,8 @@ export const login = async function (req, res) {
 
     res.cookie("authToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      // secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "strict",
       maxAge: 24 * 60 * 60 * 1000,
       domain: "localhost",

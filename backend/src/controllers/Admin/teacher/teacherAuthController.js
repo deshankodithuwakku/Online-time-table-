@@ -191,7 +191,7 @@ export const getAllTeachers = async (req, res) => {
     });
 
     if (!teachers.length) {
-      return res.status(404).json({
+      return res.status(200).json({
         message: "No teachers found matching your criteria",
       });
     }
@@ -262,7 +262,6 @@ export const getAllTeachers = async (req, res) => {
           );
         });
 
-        
         // Draw line under headers
         doc
           .moveTo(50, startY + rowHeight)
@@ -303,7 +302,6 @@ export const getAllTeachers = async (req, res) => {
             { width: colWidths[2] - cellPadding * 2, ellipsis: true }
           );
 
-
           // Contact
           doc.text(
             teacher.contactNumber || "N/A",
@@ -311,7 +309,6 @@ export const getAllTeachers = async (req, res) => {
             y + cellPadding,
             { width: colWidths[3] - cellPadding * 2 }
           );
-
 
           // Status
           doc.text(
@@ -355,7 +352,6 @@ export const getAllTeachers = async (req, res) => {
     }
   }
 };
-
 
 export const getSingleTeacher = async (req, res) => {
   const { id } = req.params;

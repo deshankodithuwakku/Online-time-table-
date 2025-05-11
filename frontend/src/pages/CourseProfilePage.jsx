@@ -14,7 +14,7 @@ const CourseProfilePage = () => {
         const response = await fetch(
           `http://localhost:8080/api/admin/getcoursedetails`,
           {
-            method: "POST",
+            method: "POST", 
             headers: {
               "Content-Type": "application/json",
             },
